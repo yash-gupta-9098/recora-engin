@@ -122,7 +122,7 @@ export default function TabsProductCard({ settingfromDb , dispatch , developerMo
 
    useEffect(() => {
  console.log("hello")
-}, [settingfromDb.colorScheme["Scheme 1"] , dispatch]);
+}, [settingfromDb , dispatch]);
 
     // Collapse section control
     const [openSection, setOpenSection] = useState<string | null>("Product_card");

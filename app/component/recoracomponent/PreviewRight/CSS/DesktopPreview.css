@@ -15,7 +15,7 @@
 
 .desktop-frame {
   width: 900px;          /* adjust as needed */
-  height: 600px;
+  height: 500px;
   max-width: 100%;
   border: 15px solid #000;
   border-radius: 12px;
@@ -91,7 +91,7 @@
 .mobile-screen {
   width: 100%;
   height: calc(100% - 60px);
-  padding: 0px 10px 10px;
+  padding: 20px 10px 10px;
   box-sizing: border-box;
   overflow-y: auto;
   background: #fff;
@@ -299,6 +299,20 @@
     line-height: normal;
 }
 
+
+.rcr_wgt_heading{
+font-size:calc(var(--rcr_heading_size) * 20px); 
+text-align: var(--rcr_heading_textAlignType);
+line-height: normal;
+color:var(--rcr_heading_color);
+}
+
+.rcr_wgt_subHeading{
+font-size:calc(var(--rcr_subHeading_size) * 10px); 
+text-align: var(--rcr_subHeading_textAlignType);
+color:var(--rcr_subHeading_color);
+line-height: normal;
+}
 
 
 .rcr_product_title{

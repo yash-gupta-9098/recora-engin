@@ -20,7 +20,7 @@ export function DesktopPreview({
   previewStyle,
   payload,
 }: DesktopPreviewProps) {
-  console.log(payload, "payload");
+  console.log(payload, "payload desktop");
 
 
   const [ landscape ,  setLandscape] = useState(false)
@@ -49,16 +49,27 @@ function toggleOrientation() {
     "--rcr_product_image_padding": `${payload.productImage.padding}px`,
 
 
+    // heading 
+"--rcr_heading_textAlignType":payload.commanView.heading.textAlign,
+"--rcr_heading_size": `${payload.commanView.heading.fontSize}`,
+    "--rcr_heading_color": payload.commanView.heading.color,
+
+
+    // subHeading 
+    "--rcr_subHeading_textAlignType":payload.commanView.subHeading.textAlign,
+"--rcr_subHeading_size": `${payload.commanView.subHeading.fontSize}`,
+    "--rcr_subHeading_color": payload.commanView.subHeading.color,
+
     // Title
     "--rcr_product_title_size": `${payload.productTitle.fontSize}`,
     "--rcr_product_title_color": payload.productTitle.color,
 
 
 // Price
-"--rcr_product_price_size": `${payload.productPrice.fontSize}rem`,
+"--rcr_product_price_size": `${payload.productPrice.fontSize}`,
 "--rcr_product_price_color": payload.productPrice.color,
 "--rcr_product_com_price_color": payload.productPrice.comparePrice.color,
-"--rcr_product_com_price_size": `${payload.productPrice.comparePrice.fontSize}rem`,
+"--rcr_product_com_price_size": `${payload.productPrice.comparePrice.fontSize}`,
 
 
   };
@@ -82,12 +93,13 @@ function toggleOrientation() {
 
   </div>
   <div className={`${previewStyle}-notch`}></div>
-  <div className={`${previewStyle}-screen screen_layout `}>
+  <div className={`${previewStyle}-screen screen_layout `} style={rootCSS}>
 
-    
+    <h2 className="rcr_wgt_heading">You May Also Like</h2>
+    <h2 className="rcr_wgt_subHeading">Puruce  now  30 % of</h2>
     <ul
       className={`recoraRightPreview recora_preview_${previewStyle} recora_layoutValue_${payload.commanView[previewStyle].viewType}`}
-      style={rootCSS}
+      
     >
       {products.slice(0,6).map((item) => {
         const { id, title, media, variants, vendor } = item.node;

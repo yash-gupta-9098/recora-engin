@@ -29,7 +29,7 @@ import TabsColor from "app/component/recoracomponent/settings/Tabs/TabsColor";
 import { authenticate } from "../shopify.server";
 import { getShopSettings } from "db/getShopSettings";
 import { updateShopSettings } from "db/updateShopSettings";
-import { Modal, SaveBar, TitleBar, useAppBridge } from "@shopify/app-bridge-react";
+import { SaveBar, useAppBridge } from "@shopify/app-bridge-react";
 import RecoraDiv from "app/component/recoracomponent/RecoraDiv";
 import DesktopPreview from "app/component/recoracomponent/PreviewRight/DesktopPreview";
 import Mobile from "app/component/recoracomponent/PreviewRight/Mobile";
@@ -567,13 +567,6 @@ const handleSave = () => {
           fullWidth={true}
           title="Settings"          
         >
-          <Modal id="my-modal" src="/app/preview" variant="large">
-        <p>Message</p>
-        <TitleBar title="Title">
-          <button variant="primary">Label</button>
-          <button onClick={() => shopify.modal.hide('my-modal')}>Label</button>
-        </TitleBar>
-      </Modal>
           <SaveBar
           id="global-settings"          
            >
@@ -611,7 +604,6 @@ const handleSave = () => {
                         connectedTop={false}
                         noWrap={false}
                       >
-                        <button onClick={() => shopify.modal.show('my-modal')}>Open Modal</button>
                         <Tooltip content="Desktop View" dismissOnMouseOut>
                           <Button
                           disabled={disableDesktop}
