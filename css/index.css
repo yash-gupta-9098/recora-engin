@@ -1,0 +1,14 @@
+.recora-number-icon-wrapper{width: 20px;
+    height: 20px;
+    border-radius: 100%;
+    overflow: hidden;
+    border: 1px #8A8A8A dashed;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    display: inline-flex;
+    min-width: 20px;
+    }
+    .recora-icon-number {
+        font-weight:700;
+    } 

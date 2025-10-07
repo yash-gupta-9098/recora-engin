@@ -1,0 +1,197 @@
+diff --git a/app/component/Widget/index.tsx b/app/component/Widget/index.tsx
+--- a/app/component/Widget/index.tsx
++++ b/app/component/Widget/index.tsx
+@@
+-interface WidgetRuleConditionData {
++export type RuleLogic = 'all' | 'any';
++
++export interface WidgetRuleConditionData {
+   id: string;
+   field: string;
+   operator: string;
+   value: string;
+   widgetId?: string;
+   order?: number;
+   createdAt?: string;
+   updatedAt?: string;
+ }
+ 
+-interface WidgetState {
++export interface RuleSettingsState {
++  logic: RuleLogic;
++  conditions: WidgetRuleConditionData[];
++}
++
++export interface WidgetState {
+   id: string;
+   slug?: string;
+   backend: {
+     widgetName: string;
+     widgetDescription: string;
+   };
+-  ruleSettings: {
+-    priceMatch: 'all' | 'any';
+-    conditions: WidgetRuleConditionData[];
+-  };
++  ruleSettings: RuleSettingsState;
+   widgetsSettings?: {
+     viewType: string;
+     layoutValue: string;
+     viewCardDesign: string;
+     totalProduct: number;
+@@
+   createdAt?: string;
+   updatedAt?: string;
+ }
+ 
+-interface WidgetSettingProps {
++export type WidgetReducerAction =
++  | { type: 'SET_ALL_WIDGETS'; payload: Record<string, WidgetState> }
++  | { type: 'UPDATE_WIDGET'; payload: { widgetId: string; settings: Partial<WidgetState> } }
++  | { type: 'ADD_CONDITION'; payload: { widgetId: string } }
++  | {
++      type: 'UPDATE_CONDITION';
++      payload: {
++        widgetId: string;
++        conditionId: string;
++        field: 'field' | 'operator' | 'value';
++        value: string;
++      };
++    }
++  | { type: 'DELETE_CONDITION'; payload: { widgetId: string; conditionId: string } }
++  | { type: 'SET_LOGIC'; payload: { widgetId: string; logic: RuleLogic } };
++
++interface WidgetSettingProps {
+   pageName: string;
+   settings: Record<string, WidgetState>;
+-  dispatch: React.Dispatch<any>;
++  dispatch: React.Dispatch<WidgetReducerAction>;
+   // fetcher?: FetcherWithComponents<any>;
+   // onSettingsChange?: (widgetId: string, settings: any) => void;
+ }
+ 
+@@
+-  const handlePriceMatchChange = useCallback((key: string, newValue: 'all' | 'any') => {
+-    // Update local state immediately for UI responsiveness
+-    dispatch({
+-      type: "UPDATE_WIDGET",
+-      payload: {
+-        widgetId: key,
+-        settings: {
+-          ruleSettings: {
+-            ...settings[key].ruleSettings,
+-            priceMatch: newValue,
+-          },
+-        },
+-      },
+-    });
++  const handleLogicChange = useCallback((key: string, newValue: RuleLogic) => {
++    dispatch({
++      type: "SET_LOGIC",
++      payload: {
++        widgetId: key,
++        logic: newValue,
++      },
++    });
+ 
+     // Send to database
+     // if (fetcher) {
+@@
+-  const handleAddCondition = useCallback((widgetKey: string) => {
+-    const newCondition: WidgetRuleConditionData = {
+-      id: `temp_${Date.now()}`, // Temporary ID for optimistic update
+-      field: 'product_title',
+-      operator: 'contains',
+-      value: '',
+-      widgetId: widgetKey
+-    };
+-
+-    // Optimistic update
+-    dispatch({
+-      type: "UPDATE_WIDGET",
+-      payload: {
+-        widgetId: widgetKey,
+-        settings: {
+-          ruleSettings: {
+-            ...settings[widgetKey].ruleSettings,
+-            conditions: [...settings[widgetKey].ruleSettings.conditions, newCondition],
+-          },
+-        },
+-      },
+-    });
++  const handleAddCondition = useCallback((widgetKey: string) => {
++    dispatch({
++      type: "ADD_CONDITION",
++      payload: { widgetId: widgetKey },
++    });
+@@
+-  const handleRemoveCondition = useCallback((widgetKey: string, conditionId: string) => {
+-    // Optimistic update
+-    dispatch({
+-      type: "UPDATE_WIDGET",
+-      payload: {
+-        widgetId: widgetKey,
+-        settings: {
+-          ruleSettings: {
+-            ...settings[widgetKey].ruleSettings,
+-            conditions: settings[widgetKey].ruleSettings.conditions.filter(
+-              c => c.id !== conditionId
+-            ),
+-          },
+-        },
+-      },
+-    });
++  const handleRemoveCondition = useCallback((widgetKey: string, conditionId: string) => {
++    dispatch({
++      type: "DELETE_CONDITION",
++      payload: { widgetId: widgetKey, conditionId },
++    });
+ 
+ 
+ 
+   }, []);
+ 
+   const handleConditionChange = useCallback((widgetKey: string, conditionId: string, field: 'field' | 'operator' | 'value', value: string) => {
+-    // Optimistic update
+     dispatch({
+-      type: "UPDATE_WIDGET",
+-      payload: {
+-        widgetId: widgetKey,
+-        settings: {
+-          ruleSettings: {
+-            ...settings[widgetKey].ruleSettings,
+-            conditions: settings[widgetKey].ruleSettings.conditions.map(c =>
+-              c.id === conditionId ? { ...c, [field]: value } : c
+-            ),
+-          },
+-        },
+-      },
++      type: "UPDATE_CONDITION",
++      payload: {
++        widgetId: widgetKey,
++        conditionId,
++        field,
++        value,
++      },
+     });
+ 
+     // Send to database
+ 
+   }, []);
+@@
+-                                  checked={widget.ruleSettings.priceMatch === 'all'}
++                                  checked={widget.ruleSettings.logic === 'all'}
+                                   id={`all-${key}`}
+                                   name={`matchWidgetsAllRule-${key}`}
+-                                  onChange={() => handlePriceMatchChange(key, 'all')}
++                                  onChange={() => handleLogicChange(key, 'all')}
+                                 />
+                                 <RadioButton
+                                   label="any condition"
+                                   id={`any-${key}`}
+                                   name={`matchWidgetsAllRule-${key}`}
+-                                  checked={widget.ruleSettings.priceMatch === 'any'}
+-                                  onChange={() => handlePriceMatchChange(key, 'any')}
++                                  checked={widget.ruleSettings.logic === 'any'}
++                                  onChange={() => handleLogicChange(key, 'any')}
+                                 />
