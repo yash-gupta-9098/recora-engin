@@ -10,16 +10,13 @@ import {
 import { ChevronDownIcon, ChevronUpIcon } from '@shopify/polaris-icons';
 import { useState } from 'react';
 import ColorScheme from '../../ColorScheme';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from 'app/redux/store/store';
 
-interface TabsColorProps {
-  settingfromDb: {
-    colorScheme: Record<string, any>;
-    
-  };
-  dispatch: React.Dispatch<any>;
-}
 
-export const TabsColor: React.FC<TabsColorProps> = ({ settingfromDb , dispatch }) => {
+export const TabsColor = () => {
+
+
   const [openSection, setOpenSection] = useState<'Primary' | 'Secondary'>('Primary');
 
   // const [selectedColorSchemes, setSelectedColorSchemes] = useState<Record<string, any>>(
@@ -32,19 +29,19 @@ export const TabsColor: React.FC<TabsColorProps> = ({ settingfromDb , dispatch }
 
   return (
     <Box
-            as="ul"
-            style={{ maxHeight: '600px', overflowY: 'scroll' }}
-            borderStyle="solid"
-            // minHeight='600px'
-            overflowY='scroll'
-        >
+      as="ul"
+      style={{ maxHeight: '600px', overflowY: 'scroll' }}
+      borderStyle="solid"
+      // minHeight='600px'
+      overflowY='scroll'
+    >
       {(['Primary', 'Secondary'] as const).map((type) => {
         const isOpen = openSection === type;
         const colorScheme = type === 'Primary' ? 'Scheme 1' : 'Scheme 2';
 
         return (
-          
-            <Box as="li" key={type} borderStyle="solid" printHidden={false} visuallyHidden={false} borderBlockEndWidth='025' borderColor='border-secondary'>
+
+          <Box as="li" key={type} borderStyle="solid" printHidden={false} visuallyHidden={false} borderBlockEndWidth='025' borderColor='border-secondary'>
             <Box
               as="div"
               padding={"300"}
@@ -72,16 +69,12 @@ export const TabsColor: React.FC<TabsColorProps> = ({ settingfromDb , dispatch }
                 <BlockStack gap="300">
                   <ColorScheme
                     colorScheme={colorScheme} // ✅ Pass "Scheme 1" or "Scheme 2"
-                    setColorScheme={() => {}}   // no-op since it's fixed now
-                    selectedColorSchemes={settingfromDb.colorScheme}
-                    dispatch ={dispatch}
-                    
                   />
                 </BlockStack>
               </Box>
             </Collapsible>
-            </Box>  
-          
+          </Box>
+
         );
       })}
     </Box>

@@ -6,7 +6,8 @@ import { NavMenu } from "@shopify/app-bridge-react";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import globalStyles from "../global.css?url";
 import { authenticate } from "../shopify.server";
-
+import { Provider as ReduxProvider } from "react-redux";
+import { store } from "app/redux/store/store";
 export const links = () => [{ rel: "stylesheet", href: polarisStyles } , { rel: "stylesheet", href: globalStyles }];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -19,7 +20,8 @@ export default function App() {
   const { apiKey } = useLoaderData<typeof loader>();
 
   return (
-    <AppProvider isEmbeddedApp apiKey={apiKey}>      
+    <AppProvider isEmbeddedApp apiKey={apiKey}> 
+     <ReduxProvider store={store}>     
       <NavMenu>
         <Link to="/app" rel="home">
           Home
@@ -30,7 +32,7 @@ export default function App() {
         <Link to="/app/Tabs">Settings</Link>
       </NavMenu>
       <Outlet />
-      
+      </ReduxProvider>
     </AppProvider>
   );
 }

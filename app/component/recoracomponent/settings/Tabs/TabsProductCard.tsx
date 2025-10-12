@@ -17,7 +17,10 @@ import {
     TextField,
 } from '@shopify/polaris';
 import { ChevronDownIcon, ChevronUpIcon, TextAlignCenterIcon, TextAlignLeftIcon, TextAlignRightIcon } from '@shopify/polaris-icons';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from 'app/redux/store/store';
+import { updateNestedField, updateSection } from 'app/redux/slices/globalSettingsSlice';
 
 interface ProductImageSettings {
     ratio: string;
@@ -35,7 +38,7 @@ interface ProductTitleSettings {
     titleClip: boolean;
     fontSize: number;
     customClass: string;
-    
+
 }
 
 
@@ -44,16 +47,16 @@ interface ProductPriceSettings {
     fontSize: number;
     color: string;
     comparePrice: {
-        fontSize:number,
+        fontSize: number,
         showComparePrice: boolean;
         color: string;
     };
-    variantPrice:{
-        fontSize:number,
-      showVariantPrice: boolean,
-      color: string
+    variantPrice: {
+        fontSize: number,
+        showVariantPrice: boolean,
+        color: string
     };
-    singlePriceColor:string;
+    singlePriceColor: string;
     showZeroToFree: boolean;
     customClass: string;
 }
@@ -82,7 +85,7 @@ interface SettingsFromDb {
 interface Props {
     settingfromDb: SettingsFromDb;
     dispatch: React.Dispatch<any>;
-    developerMode:boolean;
+    developerMode: boolean;
 }
 
 const imageRatioOptions = [
@@ -93,148 +96,109 @@ const imageRatioOptions = [
 ]
 
 const wishlistItems = [
-  { label: 'Wishlist Plus', value: 'wishlist_pluse' },
-  { label: 'Yesterday', value: 'yesterday' },
-  { label: 'Last 7 days', value: 'lastWeek' },
+    { label: 'Wishlist Plus', value: 'wishlist_pluse' },
+    { label: 'Yesterday', value: 'yesterday' },
+    { label: 'Last 7 days', value: 'lastWeek' },
 ];
 
 const reviewItems = [
-  { label: 'Loox', value: "Loox" },
-  { label: 'Okendo', value: "Okendo" },
-  { label: 'Judge.me', value: "Judge_me" },
-  { label: 'Stamped', value: "Stamped" },
-  { label: 'Yotpo', value: "Yotpo" },
-  { label: 'Ali Reviews', value: "Ali_Reviews" },
-  { label: 'Rapid Reviews', value: "Rapid_Reviews" },
-  { label: 'Air Reviews', value: "Air_Reviews" },
-  { label: 'None', value: "none" },
+    { label: 'Loox', value: "Loox" },
+    { label: 'Okendo', value: "Okendo" },
+    { label: 'Judge.me', value: "Judge_me" },
+    { label: 'Stamped', value: "Stamped" },
+    { label: 'Yotpo', value: "Yotpo" },
+    { label: 'Ali Reviews', value: "Ali_Reviews" },
+    { label: 'Rapid Reviews', value: "Rapid_Reviews" },
+    { label: 'Air Reviews', value: "Air_Reviews" },
+    { label: 'None', value: "none" },
 ];
 
 
 
 
-export default function TabsProductCard({ settingfromDb , dispatch , developerMode}: Props) {
+export default function TabsProductCard({ settingfromDb, dispatch, developerMode }: Props) {
+    // Redux hooks
+    const ReduxDispatch = useDispatch();
+    const ReduxColorScheme = useSelector((state: RootState) => state.globalSettings.colorScheme);
+    const ReduxProductCard = useSelector((state: RootState) => state.globalSettings.productCard);
+    const ReduxProductTitle = useSelector((state: RootState) => state.globalSettings.productTitle);
+    const ReduxProductPrice = useSelector((state: RootState) => state.globalSettings.productPrice);
+    const ReduxProductImage = useSelector((state: RootState) => state.globalSettings.productImage);
 
-
- 
     // console.log("settingfromDb in product card", settingfromDb);
-    const [selectedColorSchemes, setSelectedColorSchemes] = useState<any>(settingfromDb.colorScheme);
+    // const [selectedColorSchemes, setSelectedColorSchemes] = useState<any>(settingfromDb.colorScheme);
 
-   useEffect(() => {
- console.log("hello")
-}, [settingfromDb , dispatch]);
+    // useEffect(() => {
+    //     console.log("hello - Redux state updated")
+    // }, [ReduxColorScheme, ReduxProductCard, ReduxProductTitle, ReduxProductPrice, ReduxProductImage]);
 
     // Collapse section control
     const [openSection, setOpenSection] = useState<string | null>("Product_card");
     const handleToggle = (section: string) =>
         setOpenSection((prev) => (prev === section ? null : section));
 
-    // // Heading
-    // const [headingFontSize, setHeadingFontSize] = useState<number>(100);
-    // const handleHeadingFontSize = useCallback((value: number) => {
-    //     setHeadingFontSize(Math.min(Math.max(value, 80), 350));
-    // }, []);
 
-    // Product Image
-    // const [imageRatioValue, setImageRatioValue] = useState<string>(
-    //     settingfromDb.productImage.ratio
-    // );
-    // const [imageOnHover, setImageOnHover] = useState<boolean>(
-    //     settingfromDb.productImage.onHover
-    // );
-    // const [showVariantImage, setShowVariantImage] = useState<boolean>(
-    //     settingfromDb.productImage.showVariantImage
-    // );
-    // const [cropImage, setCropImage] = useState<boolean>(
-    //     settingfromDb.productImage.cropImage
-    // );
-    // const [cropType, setCropType] = useState<'top' | 'center' | 'bottom'>(
-    //     settingfromDb.productImage.cropType
-    // );
-    // const [paddingAround, setPaddingAround] = useState<number>(
-    //     settingfromDb.productImage.padding
-    // );
+    // --- helper: safely read color keys (avoid crash if undefined) ---
+    const scheme1Text = ReduxColorScheme?.["Scheme 1"]?.text;
+    const scheme2Text = ReduxColorScheme?.["Scheme 2"]?.text;
 
-    // Product Title
-    // const [showTitle, setShowTitle] = useState<boolean>(settingfromDb.productTitle.showTitle);
-    // const [titleClip, setTitleClip] = useState<boolean>(settingfromDb.productTitle.titleClip);
-    // const [productTitleColorValue, setProductTitleColorValue] = useState<string>(settingfromDb.productTitle.color);
-    // const [p_titleFontSize, setP_titleFontSize] = useState<number>(settingfromDb.productTitle.fontSize);
+    const {
+        ProductTitleColor,
+        ProductPriceColor,
+        ProductComPriceColor,
+        ProductVarColor,
+        ProductSinglePriceColor,
+    } = useMemo(() => {
+        const generateOptions = (key?: string) =>
+            [
+                { label: "Scheme 1", value: "Scheme 1" },
+                { label: "Scheme 2", value: "Scheme 2" },
+            ];
 
-    const ProductTitleColor = [
-        {
-            label: "Scheme 1",
-            value: settingfromDb.colorScheme["Scheme 1"].text,
-        },
-        {
-            label: "Scheme 2",
-            value: settingfromDb.colorScheme["Scheme 2"].text,
-        },
-    ];
+        return {
+            ProductTitleColor: generateOptions(),
+            ProductPriceColor: generateOptions(),
+            ProductComPriceColor: generateOptions(),
+            ProductVarColor: generateOptions(),
+            ProductSinglePriceColor: generateOptions(),
+        };
+    }, []);
 
+    useEffect(() => {
+        ReduxDispatch(updateSection({
+            section: 'productTitle',
+            payload: { color: ReduxColorScheme[ReduxProductTitle.colorScheme]?.text }
+        }));
 
-    
+        ReduxDispatch(updateSection({ section: 'productPrice', payload: { color: ReduxColorScheme[ReduxProductPrice.colorScheme]?.text } }))
 
+        ReduxDispatch(updateNestedField({
+            path: ['productPrice', 'comparePrice', 'color'],
+            value: ReduxColorScheme[ReduxProductPrice.comparePrice.colorScheme]?.text
+        }))
 
+        ReduxDispatch(updateNestedField({
+            path: ['productPrice', 'variantPrice', 'color'],
+            value: ReduxColorScheme[ReduxProductPrice.variantPrice.colorScheme]?.text
+        }))
 
+        ReduxDispatch(updateNestedField({
+            path: ['productPrice', 'singlePrice', 'color'],
+            value: ReduxColorScheme[ReduxProductPrice.singlePrice.colorScheme]?.text
+        }))
 
-
-
-    // Product Price
-    const [showPrice, setShowPrice] = useState(settingfromDb.productPrice.showPrice);
-    const [p_priceFontSize, setP_priceFontSize] = useState(settingfromDb.productPrice.fontSize);
-    const [productPriceColorValue, setProductPriceColorValue] = useState(settingfromDb.productPrice.color);
-
-    const [showComparePrice, setComparePrice] = useState(settingfromDb.productPrice.comparePrice.showComparePrice);
-    const [productComPriceColorValue, setProductComPriceColorValue] = useState(settingfromDb.productPrice.comparePrice.color);
-
-    const [showZeroTofree, setShowZeroTofree] = useState(settingfromDb.productPrice.showZeroToFree);
-
-    const ProductPriceColor = [
-        { label: "Scheme 1", value: selectedColorSchemes["Scheme 1"].text },
-        { label: "Scheme 2", value: selectedColorSchemes["Scheme 2"].text }
-    ];
-
-    const ProductComPriceColor = [
-        { label: "Scheme 1", value: selectedColorSchemes["Scheme 1"].text },
-        { label: "Scheme 2", value: selectedColorSchemes["Scheme 2"].text }
-    ];
-
-    const ProductVarColor = [
-        { label: "Scheme 1", value: selectedColorSchemes["Scheme 1"].text },
-        { label: "Scheme 2", value: selectedColorSchemes["Scheme 2"].text }
-    ];
-
-
-    const ProductSinglePriceColor = [
-        { label: "Scheme 1", value: selectedColorSchemes["Scheme 1"].text },
-        { label: "Scheme 2", value: selectedColorSchemes["Scheme 2"].text }
-    ];
+    }, [scheme1Text, scheme2Text]);
 
 
 
-
-    // product Card 
-    const [cardStyle, setCardStyle] = useState(settingfromDb.productCard.cardStyle);
-    const [textAlignType, setTextAlignType] = useState(settingfromDb.productCard.textAlignType);
-    const [colorSchemeValue, setColorSchemeValue] = useState(settingfromDb.productCard.colorScheme);
-    // const [productReviewType, setProductReviewType] = useState(settingfromDb.productCard.reviewType);
-    // const [selectedWishlist, setSelectedWishlist] = useState(settingfromDb.productCard.wishlist);
-    // const [showVendor, setShowVendor] = useState(settingfromDb.productCard.showVendor);
-    const [colorPopover, setColorPopover] = useState(false);
-
-
-
-    // Toggle functions
-    const toggleBoolean = (setter: (v: boolean) => void) =>
-        setter((prev) => !prev);
+    const [colorPopover, setColorPopover] = useState(false);    
 
     return (
         <Box
             as="ul"
             style={{ maxHeight: '600px', overflowY: 'scroll' }}
             borderStyle="solid"
-            // overflowY='scroll'
+        // overflowY='scroll'
         >
 
             {/* ProductCard */}
@@ -255,161 +219,161 @@ export default function TabsProductCard({ settingfromDb , dispatch , developerMo
                             e.stopPropagation();
                             console.log("click")
                           }}><Icon source={ResetIcon} tone="magic" /></Box> */}
-                        <BlockStack gap={300}>                            
+                        <BlockStack gap={300}>
 
-                                    {/* Card Style: Standard / Card */}
-                                    <InlineStack gap="100" align="space-between" blockAlign="center">
-                                        <Text as="p" variant="bodyMd">Style</Text>
-                                        <Box background="bg-fill-secondary" borderRadius="200">
-                                        <ButtonGroup variant="segmented">
-                                            <Button
-                                                size="slim"
-                                                variant={settingfromDb.productCard.cardStyle === "standard" ? "secondary" : "tertiary"}
-                                                onClick={() => dispatch({type: "UPDATE_PRODUCT_CARD", payload: {cardStyle: "standard"}})}
-                                            >
-                                                Standard
-                                            </Button>
-                                            <Button
-                                                size="slim"
-                                                variant={settingfromDb.productCard.cardStyle === "card" ? "secondary" : "tertiary"}
-                                                onClick={() => dispatch({type: "UPDATE_PRODUCT_CARD", payload: {cardStyle: "card"}})}
-                                            >
-                                                Card
-                                            </Button>
-                                        </ButtonGroup>
-                                        </Box>
-                                    </InlineStack>
-
-                                    {/* Text Alignment buttons */}
-                                    <InlineStack gap="100" align='space-between' blockAlign="center">
-                                        <Text as="p" variant="bodyMd">Alignment</Text>
-                                        <ButtonGroup gap="loose" variant="segmented">
-                                            <Tooltip content="Text Align Left" dismissOnMouseOut>
-                                                <Button
-                                                    size="micro"
-                                                    pressed={settingfromDb.productCard.textAlignType === "left"}
-                                                    onClick={() => dispatch({type: "UPDATE_PRODUCT_CARD", payload: {textAlignType: "left"}})}
-                                                >
-                                                    <Icon source={TextAlignLeftIcon} />
-                                                </Button>
-                                            </Tooltip>
-
-                                            <Tooltip content="Text Align Center" dismissOnMouseOut>
-                                                <Button
-                                                    size="micro"
-                                                    pressed={settingfromDb.productCard.textAlignType === "center"}
-                                                    onClick={() => dispatch({type: "UPDATE_PRODUCT_CARD", payload: {textAlignType: "center"}})}
-                                                >
-                                                    <Icon source={TextAlignCenterIcon} />
-                                                </Button>
-                                            </Tooltip>
-
-                                            <Tooltip content="Text Align Right" dismissOnMouseOut>
-                                                <Button
-                                                    size="micro"
-                                                    pressed={settingfromDb.productCard.textAlignType === "right"}
-                                                    onClick={() =>  dispatch({type: "UPDATE_PRODUCT_CARD", payload: {textAlignType: "right"}})}
-                                                >
-                                                    <Icon source={TextAlignRightIcon} />
-                                                </Button>
-                                            </Tooltip>
-                                        </ButtonGroup>
-                                    </InlineStack>
-
-                                    {/* Show Vendor toggle */}
-                                    <ToggleRow
-                                        label="Show vendor"
-                                        enabled={settingfromDb.productCard.showVendor}
-                                        onToggle={() => dispatch({type: "UPDATE_PRODUCT_CARD", payload: {showVendor: !settingfromDb.productCard.showVendor}})}
-                                    />
-
-                                    {/* Color Scheme Popover */}
-                                    <InlineStack gap="100" align="space-between" blockAlign="center">
-                                        <Text as="p" variant="bodyMd">Color Scheme</Text>
-                                        <Popover
-                                            active={colorPopover}
-                                            activator={
-                                                <Button variant="secondary" disclosure="select" onClick={() => setColorPopover(true)}>
-                                                    {settingfromDb.productCard.colorScheme}
-                                                </Button>
-                                            }
-                                            autofocusTarget="none"
-                                            onClose={() => setColorPopover(false)}
+                            {/* Card Style: Standard / Card */}
+                            <InlineStack gap="100" align="space-between" blockAlign="center">
+                                <Text as="p" variant="bodyMd">Style</Text>
+                                <Box background="bg-fill-secondary" borderRadius="200">
+                                    <ButtonGroup variant="segmented">
+                                        <Button
+                                            size="slim"
+                                            variant={ReduxProductCard.cardStyle === "standard" ? "secondary" : "tertiary"}
+                                            onClick={() => ReduxDispatch(updateSection({ section: 'productCard', payload: { cardStyle: "standard" } }))}
                                         >
-                                            <Popover.Pane fixed>
-                                                <Popover.Section>
-                                                    <p>Select Color Scheme</p>
-                                                </Popover.Section>
-                                            </Popover.Pane>
-                                            <Divider />
-                                            <Popover.Pane>
-                                                <ActionList
-                                                    actionRole="menuitem"
-                                                    items={[
-                                                        { content: 'Scheme 1', active: settingfromDb.productCard.colorScheme == "Scheme 1",  onAction: () => dispatch({type: "UPDATE_PRODUCT_CARD", payload: {colorScheme: "Scheme 1"}}) },
-                                                        { content: 'Scheme 2', active: settingfromDb.productCard.colorScheme == "Scheme 2",  onAction: () => dispatch({type: "UPDATE_PRODUCT_CARD", payload: {colorScheme: "Scheme 2"}}) },
-                                                    ]}
-                                                />
-                                            </Popover.Pane>
-                                        </Popover>
-                                    </InlineStack>
+                                            Standard
+                                        </Button>
+                                        <Button
+                                            size="slim"
+                                            variant={ReduxProductCard.cardStyle === "card" ? "secondary" : "tertiary"}
+                                            onClick={() => ReduxDispatch(updateSection({ section: 'productCard', payload: { cardStyle: "card" } }))}
+                                        >
+                                            Card
+                                        </Button>
+                                    </ButtonGroup>
+                                </Box>
+                            </InlineStack>
+
+                            {/* Text Alignment buttons */}
+                            <InlineStack gap="100" align='space-between' blockAlign="center">
+                                <Text as="p" variant="bodyMd">Alignment</Text>
+                                <ButtonGroup gap="loose" variant="segmented">
+                                    <Tooltip content="Text Align Left" dismissOnMouseOut>
+                                        <Button
+                                            size="micro"
+                                            pressed={ReduxProductCard.textAlignType === "left"}
+                                            onClick={() => ReduxDispatch(updateSection({ section: 'productCard', payload: { textAlignType: "left" } }))}
+                                        >
+                                            <Icon source={TextAlignLeftIcon} />
+                                        </Button>
+                                    </Tooltip>
+
+                                    <Tooltip content="Text Align Center" dismissOnMouseOut>
+                                        <Button
+                                            size="micro"
+                                            pressed={ReduxProductCard.textAlignType === "center"}
+                                            onClick={() => ReduxDispatch(updateSection({ section: 'productCard', payload: { textAlignType: "center" } }))}
+                                        >
+                                            <Icon source={TextAlignCenterIcon} />
+                                        </Button>
+                                    </Tooltip>
+
+                                    <Tooltip content="Text Align Right" dismissOnMouseOut>
+                                        <Button
+                                            size="micro"
+                                            pressed={ReduxProductCard.textAlignType === "right"}
+                                            onClick={() => ReduxDispatch(updateSection({ section: 'productCard', payload: { textAlignType: "right" } }))}
+                                        >
+                                            <Icon source={TextAlignRightIcon} />
+                                        </Button>
+                                    </Tooltip>
+                                </ButtonGroup>
+                            </InlineStack>
+
+                            {/* Show Vendor toggle */}
+                            <ToggleRow
+                                label="Show vendor"
+                                enabled={ReduxProductCard.showVendor}
+                                onToggle={() => ReduxDispatch(updateSection({ section: 'productCard', payload: { showVendor: !ReduxProductCard.showVendor } }))}
+                            />
+
+                            {/* Color Scheme Popover */}
+                            <InlineStack gap="100" align="space-between" blockAlign="center">
+                                <Text as="p" variant="bodyMd">Color Scheme</Text>
+                                <Popover
+                                    active={colorPopover}
+                                    activator={
+                                        <Button variant="secondary" disclosure="select" onClick={() => setColorPopover(true)}>
+                                            {ReduxProductCard.colorScheme}
+                                        </Button>
+                                    }
+                                    autofocusTarget="none"
+                                    onClose={() => setColorPopover(false)}
+                                >
+                                    <Popover.Pane fixed>
+                                        <Popover.Section>
+                                            <p>Select Color Scheme</p>
+                                        </Popover.Section>
+                                    </Popover.Pane>
+                                    <Divider />
+                                    <Popover.Pane>
+                                        <ActionList
+                                            actionRole="menuitem"
+                                            items={[
+                                                { content: 'Scheme 1', active: ReduxProductCard.colorScheme == "Scheme 1", onAction: () => ReduxDispatch(updateSection({ section: 'productCard', payload: { colorScheme: "Scheme 1" } })) },
+                                                { content: 'Scheme 2', active: ReduxProductCard.colorScheme == "Scheme 2", onAction: () => ReduxDispatch(updateSection({ section: 'productCard', payload: { colorScheme: "Scheme 2" } })) },
+                                            ]}
+                                        />
+                                    </Popover.Pane>
+                                </Popover>
+                            </InlineStack>
 
 
-                                    {/* <InlineStack gap="100" align="space-between" blockAlign="center">
+                            {/* <InlineStack gap="100" align="space-between" blockAlign="center">
                                 <Text as="p" variant="bodyMd">Card Scheme</Text>
                                 <Select
                                     options={ProductCardColor}
-                                    value={settingfromDb.productCard.colorScheme}
+                                    value={ReduxProductCard.colorScheme}
                                     onChange={(value) => dispatch({type: "UPDATE_PRODUCT_CARD", payload: {colorScheme: value}})}
                                 />
                             </InlineStack> */}
 
-                                    {/* Review type selection */}
-                                    <InlineStack gap="100" align="space-between" blockAlign="center">
-                                        <Text as="p" variant="bodyMd">Review</Text>
-                                        <Select
-                                            label=""
-                                            options={reviewItems}
-                                            value={settingfromDb.productCard.reviewType}
-                                            onChange={(value : string ) => dispatch({type: "UPDATE_PRODUCT_CARD", payload: {reviewType: value}})}
-                                        />
-                                    </InlineStack>
+                            {/* Review type selection */}
+                            <InlineStack gap="100" align="space-between" blockAlign="center">
+                                <Text as="p" variant="bodyMd">Review</Text>
+                                <Select
+                                    label=""
+                                    options={reviewItems}
+                                    value={ReduxProductCard.reviewType}
+                                    onChange={(value: string) => ReduxDispatch(updateSection({ section: 'productCard', payload: { reviewType: value } }))}
+                                />
+                            </InlineStack>
 
-                                    {/* Wishlist app selection */}
-                                    <InlineStack gap="100" align="space-between" blockAlign="center">
-                                        <Text as="p" variant="bodyMd">Wishlist</Text>
-                                        <Select
-                                            label=""
-                                            options={wishlistItems}
-                                            value={settingfromDb.productCard.wishlist}
-                                            onChange={(value : string) => dispatch({type: "UPDATE_PRODUCT_CARD", payload: {wishlist: value}})}
-                                        />
-                                    </InlineStack>
+                            {/* Wishlist app selection */}
+                            <InlineStack gap="100" align="space-between" blockAlign="center">
+                                <Text as="p" variant="bodyMd">Wishlist</Text>
+                                <Select
+                                    label=""
+                                    options={wishlistItems}
+                                    value={ReduxProductCard.wishlist}
+                                    onChange={(value: string) => ReduxDispatch(updateSection({ section: 'productCard', payload: { wishlist: value } }))}
+                                />
+                            </InlineStack>
 
-                                    
-                                
-                                    {developerMode && (
-                <TextField
-                  label={<Text variant="bodyMd" as="span" tone="critical" fontWeight="bold">Product Card Class</Text>}
-                  tone="magic"
-                  value={settingfromDb.productCard.customClass}
-                  onChange={(value) =>
-                    dispatch({
-                      type: "UPDATE_PRODUCT_CARD",
-                      payload: { customClass: value  },
-                    })
-                  }
-                  autoComplete="off"
-                />
-              )} 
+
+
+                            {developerMode && (
+                                <TextField
+                                    label={<Text variant="bodyMd" as="span" tone="critical" fontWeight="bold">Product Card Class</Text>}
+                                    tone="magic"
+                                    value={ReduxProductCard.customClass}
+                                    onChange={(value) =>
+                                        ReduxDispatch(updateSection({
+                                            section: 'productCard',
+                                            payload: { customClass: value },
+                                        }))
+                                    }
+                                    autoComplete="off"
+                                />
+                            )}
 
                         </BlockStack>
                     </Box>
                 </Collapsible>
             </Box>
-                  
 
-            
+
+
             {/* Product Title Section */}
             <Box
                 as="li"
@@ -443,81 +407,93 @@ export default function TabsProductCard({ settingfromDb , dispatch , developerMo
                         <BlockStack gap={300}>
                             <ToggleRow
                                 label="Show"
-                                enabled={settingfromDb.productTitle.showTitle}
-                                onToggle={() => dispatch({type: "UPDATE_PRODUCT_TITLE", payload: {showTitle: !settingfromDb.productTitle.showTitle}})}
+                                enabled={ReduxProductTitle.showTitle}
+                                onToggle={() => ReduxDispatch(updateSection({ section: 'productTitle', payload: { showTitle: !ReduxProductTitle.showTitle } }))}
                             />
 
-                             {settingfromDb.productTitle.showTitle && (
+                            {ReduxProductTitle.showTitle && (
                                 <>
-                            <InlineGrid gap="100">
-                                <Text as="p" variant="bodyMd">Font size</Text>
-                                <InlineStack gap="100" align="space-between" blockAlign="center">
-                                    <RangeSlider
-                                        label=""
-                                        min={0.6}
-                                        step={0.05}
-                                        max={1.8}
-                                        value={Number(settingfromDb.productTitle.fontSize)}
-                                        onChange={(value :number) => 
-                                            dispatch({type: "UPDATE_PRODUCT_TITLE", payload: {fontSize: Math.min(Math.max(value, 0.6), 1.8)}})
-                                        }
-                                        suffix={
-                                            <p style={{ minWidth: '24px', textAlign: 'right' }}>
-                                                <strong>{Math.floor((settingfromDb.productTitle.fontSize) * 20)}px</strong>
-                                            </p>
-                                        }
+                                    <InlineGrid gap="100">
+                                        <Text as="p" variant="bodyMd">Font size</Text>
+                                        <InlineStack gap="100" align="space-between" blockAlign="center">
+                                            <RangeSlider
+                                                label=""
+                                                min={0.6}
+                                                step={0.05}
+                                                max={1.8}
+                                                value={Number(ReduxProductTitle.fontSize)}
+                                                onChange={(value: number) =>
+                                                    ReduxDispatch(updateSection({ section: 'productTitle', payload: { fontSize: Math.min(Math.max(value, 0.6), 1.8) } }))
+                                                }
+                                                suffix={
+                                                    <p style={{ minWidth: '24px', textAlign: 'right' }}>
+                                                        <strong>{Math.floor((ReduxProductTitle.fontSize) * 20)}px</strong>
+                                                    </p>
+                                                }
+                                            />
+                                        </InlineStack>
+                                    </InlineGrid>
+
+                                    <InlineStack gap="100" align="space-between" blockAlign="center">
+                                        <Text as="p" variant="bodyMd">Color</Text>
+                                        <Select
+                                            label={
+                                                <Box
+                                                    as="span"
+                                                    style={{
+                                                        width: '20px',
+                                                        height: '20px',
+                                                        background: ReduxColorScheme[ReduxProductTitle.colorScheme]?.text,
+                                                        borderRadius: '50%',
+                                                        display: 'block',
+                                                    }}
+                                                />
+                                            }
+                                            labelInline
+                                            options={ProductTitleColor}
+                                            value={ReduxProductTitle.colorScheme}
+                                            onChange={(value) => {
+                                                ReduxDispatch(updateSection({ section: 'productTitle', payload: { colorScheme: value } }))
+                                                ReduxDispatch(updateSection({
+                                                    section: 'productTitle',
+                                                    payload: { color: ReduxColorScheme[value]?.text }
+                                                }))
+                                            }
+                                            }
+                                        />
+                                        <input
+                                            type="hidden"
+                                            name="ProductTitlecolor"
+                                            value={ReduxProductTitle.colorScheme ?? ReduxColorScheme[ReduxProductTitle.colorScheme]?.text}
+                                        />
+                                    </InlineStack>
+
+                                    <ToggleRow
+                                        label="Enable text clipping"
+                                        enabled={ReduxProductTitle.titleClip}
+                                        onToggle={() => ReduxDispatch(updateSection({ section: 'productTitle', payload: { titleClip: !ReduxProductTitle.titleClip } }))}
+                                        description="Restrict Titles to one line."
                                     />
-                                </InlineStack>
-                            </InlineGrid>
 
-                            <InlineStack gap="100" align="space-between" blockAlign="center">
-                                <Text as="p" variant="bodyMd">Color</Text>
-                                <Select
-                                    label={
-            <Box
-              as="span"
-              style={{
-                width: '20px',
-                height: '20px',
-                background: settingfromDb.productTitle.color,
-                borderRadius: '50%',
-                display: 'block',
-              }}
-            />
-          }
-                                    labelInline
-                                    options={ProductTitleColor}
-                                    value={settingfromDb.productTitle.color}
-                                    onChange={(value) => dispatch({type: "UPDATE_PRODUCT_TITLE", payload: {color: value}})}
-                                />
-                            </InlineStack>
 
-                            <ToggleRow
-                                label="Enable text clipping"
-                                enabled={settingfromDb.productTitle.titleClip}
-                                onToggle={() => dispatch({type: "UPDATE_PRODUCT_TITLE", payload: {titleClip: !settingfromDb.productTitle.titleClip}})}
-                                description="Restrict Titles to one line."
-                            />
-                           
-                            
-                            {developerMode && (
-                <TextField
-                  label={<Text variant="bodyMd" as="span" tone="critical" fontWeight="bold">TiTle Custom Class</Text>}
-                  tone="magic"
-                  value={settingfromDb.productTitle.customClass}
-                  onChange={(value) =>
-                    dispatch({
-                      type: "UPDATE_PRODUCT_TITLE",
-                      payload: { customClass: value  },
-                    })
-                  }
-                  autoComplete="off"
-                />
-              )} 
-               </>
+                                    {developerMode && (
+                                        <TextField
+                                            label={<Text variant="bodyMd" as="span" tone="critical" fontWeight="bold">TiTle Custom Class</Text>}
+                                            tone="magic"
+                                            value={ReduxProductTitle.customClass}
+                                            onChange={(value) =>
+                                                ReduxDispatch(updateSection({
+                                                    section: 'productTitle',
+                                                    payload: { customClass: value },
+                                                }))
+                                            }
+                                            autoComplete="off"
+                                        />
+                                    )}
+                                </>
 
                             )
-                        }
+                            }
 
                         </BlockStack>
                     </Box>
@@ -542,203 +518,351 @@ export default function TabsProductCard({ settingfromDb , dispatch , developerMo
                         <BlockStack gap={300}>
                             <ToggleRow
                                 label="Show"
-                                enabled={settingfromDb.productPrice.showPrice}
-                                onToggle={() => dispatch({type: "UPDATE_PRODUCT_PRICE", payload: {showPrice: !settingfromDb.productPrice.showPrice}})}
+                                enabled={ReduxProductPrice.showPrice}
+                                onToggle={() => ReduxDispatch(updateSection({ section: 'productPrice', payload: { showPrice: !ReduxProductPrice.showPrice } }))}
                             />
 
 
-                        { settingfromDb.productPrice.showPrice && (
-                            <>
-                            {/* Price color selection */}
-                            <InlineStack gap="100" align="space-between" blockAlign="center">
-                                <Text as="p" variant="bodyMd">Price</Text>
-                                <Select
-                                label={
-            <Box
-              as="span"
-              style={{
-                width: '20px',
-                height: '20px',
-                background: settingfromDb.productPrice.color,
-                borderRadius: '50%',
-                display: 'block',
-              }}
-            />
-          }
-                                    labelInline
-                                    options={ProductPriceColor}
-                                    value={settingfromDb.productPrice.color}
-                                    onChange={(value) => dispatch({type: "UPDATE_PRODUCT_PRICE", payload: {color: value}})}
-                                />
-                            </InlineStack>
-
-                            {/* Font size for price */}
-                            <InlineGrid gap="100">
-                                <Text as="p" variant="bodyMd">Font size</Text>
-                                <InlineStack gap="100" align="space-between" blockAlign="center">
-                                    <RangeSlider
-                                        label=""
-                                        min={1}
-                                        step={0.05}
-                                        max={3}
-                                        value={Number(settingfromDb.productPrice.fontSize)}
-                                        onChange={(value : number) => 
-                                            dispatch({type: "UPDATE_PRODUCT_PRICE", payload: {fontSize: Math.min(Math.max(value, 1), 3)}})
-                                            // setP_priceFontSize(Math.min(Math.max(value, 100), 300))
-                                        }
-                                        suffix={
-                                            <p style={{ minWidth: "24px", textAlign: "right" }}>
-                                                <strong>{Math.floor(settingfromDb.productPrice.fontSize * 10)}px</strong>
-                                            </p>
-                                        }
-                                    />
-                                </InlineStack>
-                            </InlineGrid>
-
-
-                            {developerMode && (
-                <TextField
-                  label={<Text variant="bodyMd" as="span" tone="critical" fontWeight="bold">Price Custom Class</Text>}
-                  tone="magic"
-                  value={settingfromDb.productPrice.customClass}
-                  onChange={(value) =>
-                    dispatch({
-                      type: "UPDATE_PRODUCT_PRICE",
-                      payload: { customClass: value  },
-                    })
-                  }
-                  autoComplete="off"
-                />
-              )} 
-
-                         {(settingfromDb.productPrice.comparePrice.showComparePrice || settingfromDb.productPrice.showPrice ) && (
-
-                            <Divider />
-                         )}
-
-
-                            {/* Toggle for compare price display */}
-                            <ToggleRow
-                                label="Compare Price"
-                                enabled={settingfromDb.productPrice.comparePrice.showComparePrice}
-                                onToggle={() => dispatch({type: "UPDATE_PRODUCT_PRICE", payload: {comparePrice: {showComparePrice: !settingfromDb.productPrice.comparePrice.showComparePrice}}})}
-                            />
-
-                            {settingfromDb.productPrice.comparePrice.showComparePrice && ( <>
-
-                            {/* Compare price color selection */}
-                            <InlineStack gap="100" align="space-between" blockAlign="center" wrap={false}>
-                                <Text as="p" variant="bodyMd">Color</Text>
-                                <Select
-                                    options={ProductComPriceColor}
-                                    value={settingfromDb.productPrice.comparePrice.color}
-                                    onChange={(value) => dispatch({type: "UPDATE_PRODUCT_PRICE", payload: {comparePrice: {color: value}}})}
-                                />
-                            </InlineStack>
-
-                            <InlineGrid gap="100">
-                                <Text as="p" variant="bodyMd">Font size</Text>
-                                <InlineStack gap="100" align="space-between" blockAlign="center">
-                                    <RangeSlider
-                                        label=""
-                                        min={1}
-                                        step={0.05}
-                                        max={3}
-                                        value={Number(settingfromDb.productPrice.comparePrice.fontSize)}
-                                        onChange={(value : number) => 
-                                            dispatch({type: "UPDATE_PRODUCT_PRICE", payload: {comparePrice: {fontSize: Math.min(Math.max(value, 1), 3)}}})
-                                            // setP_priceFontSize(Math.min(Math.max(value, 100), 300))
-                                        }
-                                        suffix={
-                                            <p style={{ minWidth: "24px", textAlign: "right" }}>
-                                                <strong>{Math.floor(settingfromDb.productPrice.comparePrice.fontSize * 10)}px</strong>
-                                            </p>
-                                        }
-                                    />
-                                </InlineStack>
-                            </InlineGrid>
-
-                            </>)}
-
-                        
-
-
-                        {(settingfromDb.productPrice.variantPrice.showVariantPrice || settingfromDb.productPrice.comparePrice.showComparePrice ) && (
-
-                            <Divider />
-                         )}
-
-
-                            <ToggleRow
-                                label="Variant Price"
-                                enabled={settingfromDb.productPrice.variantPrice.showVariantPrice}
-                                onToggle={() => dispatch({type: "UPDATE_PRODUCT_PRICE", payload: {variantPrice: {showVariantPrice: !settingfromDb.productPrice.variantPrice.showVariantPrice}}})}
-                            />
-
-
-                            {settingfromDb.productPrice.variantPrice.showVariantPrice && (
+                            {ReduxProductPrice.showPrice && (
                                 <>
-                                <InlineStack gap="100" align="space-between" blockAlign="center" wrap={false}>
-                                <Text as="p" variant="bodyMd">Color</Text>
-                                <Select
-                                    options={ProductVarColor}
-                                    value={settingfromDb.productPrice.variantPrice.color}
-                                    onChange={(value) => dispatch({type: "UPDATE_PRODUCT_PRICE", payload: {variantPrice: {color: value}}})}
-                                />
-                            </InlineStack>
+                                    {/* Price color selection */}
+                                    <InlineStack gap="100" align="space-between" blockAlign="center">
+                                        <Text as="p" variant="bodyMd">Price</Text>
+                                        <Select
+                                            label={
+                                                <Box
+                                                    as="span"
+                                                    style={{
+                                                        width: '20px',
+                                                        height: '20px',
+                                                        background: ReduxColorScheme[ReduxProductPrice.colorScheme]?.text,
+                                                        borderRadius: '50%',
+                                                        display: 'block',
+                                                    }}
+                                                />
+                                            }
+                                            labelInline
+                                            options={ProductPriceColor}
+                                            value={ReduxProductPrice.colorScheme}
+                                            onChange={(value) => {
+                                                ReduxDispatch(updateSection({ section: 'productPrice', payload: { colorScheme: value } }))
+                                                ReduxDispatch(updateSection({ section: 'productPrice', payload: { color: ReduxColorScheme[value]?.text } }))
+                                            }}
+                                        />
+                                        <input
+                                            type="hidden"
+                                            name="ProductPriceColor"
+                                            value={ReduxProductPrice.colorScheme ?? ReduxColorScheme[ReduxProductPrice.colorScheme]?.text}
+                                        />
+                                    </InlineStack>
 
-                            <InlineGrid gap="100">
-                                <Text as="p" variant="bodyMd">Font size</Text>
-                                <InlineStack gap="100" align="space-between" blockAlign="center">
-                                    <RangeSlider
-                                        label=""
-                                        min={1}
-                                        step={0.05}
-                                        max={3.8}
-                                        value={Number(settingfromDb.productPrice.variantPrice.fontSize)}
-                                        onChange={(value : number) => 
-                                            dispatch({type: "UPDATE_PRODUCT_PRICE", payload: {variantPrice: {fontSize: Math.min(Math.max(value, 1), 3.8)}}})
-                                            // setP_priceFontSize(Math.min(Math.max(value, 100), 300))
-                                        }
-                                        suffix={
-                                            <p style={{ minWidth: "24px", textAlign: "right" }}>
-                                                <strong>{Math.floor(settingfromDb.productPrice.variantPrice.fontSize * 10)}px</strong>
-                                            </p>
+                                    {/* Font size for price */}
+                                    <InlineGrid gap="100">
+                                        <Text as="p" variant="bodyMd">Font size</Text>
+                                        <InlineStack gap="100" align="space-between" blockAlign="center">
+                                            <RangeSlider
+                                                label=""
+                                                min={1}
+                                                step={0.05}
+                                                max={3}
+                                                value={Number(ReduxProductPrice.fontSize)}
+                                                onChange={(value: number) =>
+                                                    ReduxDispatch(updateSection({ section: 'productPrice', payload: { fontSize: Math.min(Math.max(value, 1), 3) } }))
+                                                }
+                                                suffix={
+                                                    <p style={{ minWidth: "24px", textAlign: "right" }}>
+                                                        <strong>{Math.floor(ReduxProductPrice.fontSize * 10)}px</strong>
+                                                    </p>
+                                                }
+                                            />
+                                        </InlineStack>
+                                    </InlineGrid>
+
+
+                                    {developerMode && (
+                                        <TextField
+                                            label={<Text variant="bodyMd" as="span" tone="critical" fontWeight="bold">Price Custom Class</Text>}
+                                            tone="magic"
+                                            value={ReduxProductPrice.customClass}
+                                            onChange={(value) =>
+                                                ReduxDispatch(updateSection({
+                                                    section: 'productPrice',
+                                                    payload: { customClass: value },
+                                                }))
+                                            }
+                                            autoComplete="off"
+                                        />
+                                    )}
+
+                                    {(ReduxProductPrice.comparePrice.showComparePrice || ReduxProductPrice.showPrice) && (
+
+                                        <Divider />
+                                    )}
+
+
+                                    {/* Toggle for compare price display */}
+                                    <ToggleRow
+                                        label="Compare Price"
+                                        enabled={ReduxProductPrice.comparePrice.showComparePrice}
+                                        // onToggle={() => ReduxDispatch(updateSection({section: 'productPrice', payload: {comparePrice: {showComparePrice: !ReduxProductPrice.comparePrice.showComparePrice}}}))}
+                                        onToggle={() =>
+                                            ReduxDispatch(updateNestedField({
+                                                path: ['productPrice', 'comparePrice', 'showComparePrice'],
+                                                value: !ReduxProductPrice.comparePrice.showComparePrice
+                                            }))
                                         }
                                     />
-                                </InlineStack>
-                            </InlineGrid>
-                                
+
+                                    {ReduxProductPrice.comparePrice.showComparePrice && (<>
+
+                                        {/* Compare price color selection */}
+                                        <InlineStack gap="100" align="space-between" blockAlign="center" wrap={false}>
+                                            <Text as="p" variant="bodyMd">Color</Text>
+                                            <Select
+                                                options={ProductComPriceColor}
+                                                labelInline
+                                                label={
+                                                    <Box
+                                                        as="span"
+                                                        style={{
+                                                            width: '20px',
+                                                            height: '20px',
+                                                            background: ReduxColorScheme[ReduxProductPrice.comparePrice.colorScheme]?.text,
+                                                            borderRadius: '50%',
+                                                            display: 'block',
+                                                        }}
+                                                    />
+                                                }
+                                                value={ReduxProductPrice.comparePrice.colorScheme}
+                                                // onChange={(value) => ReduxDispatch(updateSection({section: 'productPrice', payload: {comparePrice: {color: value}}}))}
+                                                onChange={(value) => {
+                                                    ReduxDispatch(updateNestedField({
+                                                        path: ['productPrice', 'comparePrice', 'colorScheme'],
+                                                        value: value
+                                                    }))
+
+                                                    ReduxDispatch(updateNestedField({
+                                                        path: ['productPrice', 'comparePrice', 'color'],
+                                                        value: ReduxColorScheme[value]?.text
+                                                    }))
+                                                }
+                                                }
+                                            />
+                                            <input
+                                                type="hidden"
+                                                name="ProductComparePriceColor"
+                                                value={ReduxProductPrice.comparePrice.colorScheme ?? ReduxColorScheme[ReduxProductPrice.comparePrice.colorScheme]?.text}
+                                            />
+                                        </InlineStack>
+
+                                        <InlineGrid gap="100">
+                                            <Text as="p" variant="bodyMd">Font size</Text>
+                                            <InlineStack gap="100" align="space-between" blockAlign="center">
+                                                <RangeSlider
+                                                    label=""
+                                                    min={1}
+                                                    step={0.05}
+                                                    max={3}
+                                                    value={Number(ReduxProductPrice.comparePrice.fontSize)}
+                                                    // onChange={(value : number) => 
+                                                    //     ReduxDispatch(updateSection({section: 'productPrice', payload: {comparePrice: {fontSize: Math.min(Math.max(value, 1), 3)}}}))
+                                                    // }
+                                                    onChange={(value: number) =>
+                                                        ReduxDispatch(updateNestedField({
+                                                            path: ['productPrice', 'comparePrice', 'fontSize'],
+                                                            value: Math.min(Math.max(value, 1), 3)
+                                                        }))
+                                                    }
+                                                    suffix={
+                                                        <p style={{ minWidth: "24px", textAlign: "right" }}>
+                                                            <strong>{Math.floor(ReduxProductPrice.comparePrice.fontSize * 10)}px</strong>
+                                                        </p>
+                                                    }
+                                                />
+                                            </InlineStack>
+                                        </InlineGrid>
+
+                                    </>)}
+
+
+
+
+                                    {(ReduxProductPrice.variantPrice.showVariantPrice || ReduxProductPrice.comparePrice.showComparePrice) && (
+
+                                        <Divider />
+                                    )}
+
+
+                                    <ToggleRow
+                                        label="Variant Price"
+                                        enabled={ReduxProductPrice.variantPrice.showVariantPrice}
+                                        // onToggle={() => ReduxDispatch(updateSection({section: 'productPrice', payload: {variantPrice: {showVariantPrice: !ReduxProductPrice.variantPrice.showVariantPrice}}}))}
+                                        onToggle={() =>
+                                            ReduxDispatch(updateNestedField({
+                                                path: ['productPrice', 'variantPrice', 'showVariantPrice'],
+                                                value: !ReduxProductPrice.variantPrice.showVariantPrice
+                                            }))
+
+                                        }
+                                    />
+
+
+                                    {ReduxProductPrice.variantPrice.showVariantPrice && (
+                                        <>
+                                            <InlineStack gap="100" align="space-between" blockAlign="center" wrap={false}>
+                                                <Text as="p" variant="bodyMd">Color</Text>
+                                                <Select
+                                                    options={ProductVarColor}
+                                                    labelInline
+                                                    label={
+                                                        <Box
+                                                            as="span"
+                                                            style={{
+                                                                width: '20px',
+                                                                height: '20px',
+                                                                background: ReduxColorScheme[ReduxProductPrice.variantPrice.colorScheme]?.text,
+                                                                borderRadius: '50%',
+                                                                display: 'block',
+                                                            }}
+                                                        />
+                                                    }
+                                                    value={ReduxProductPrice.variantPrice.colorScheme}
+                                                    // onChange={(value) => ReduxDispatch(updateSection({section: 'productPrice', payload: {variantPrice: {color: value}}}))}
+                                                    onChange={(value) => {
+                                                        ReduxDispatch(updateNestedField({
+                                                            path: ['productPrice', 'variantPrice', 'colorScheme'],
+                                                            value: value
+                                                        }))
+                                                        ReduxDispatch(updateNestedField({
+                                                            path: ['productPrice', 'variantPrice', 'color'],
+                                                            value: ReduxColorScheme[value]?.text
+                                                        }))
+
+                                                    }
+                                                    }
+                                                />
+
+                                                <input
+                                                    type="hidden"
+                                                    name="ProductTitlecolor"
+                                                    value={ReduxProductPrice.variantPrice.colorScheme ?? ReduxColorScheme[ReduxProductPrice.variantPrice.colorScheme]?.text}
+                                                />
+                                            </InlineStack>
+
+                                            <InlineGrid gap="100">
+                                                <Text as="p" variant="bodyMd">Font size</Text>
+                                                <InlineStack gap="100" align="space-between" blockAlign="center">
+                                                    <RangeSlider
+                                                        label=""
+                                                        min={1}
+                                                        step={0.05}
+                                                        max={3.8}
+                                                        value={Number(ReduxProductPrice.variantPrice.fontSize)}
+                                                        // onChange={(value : number) => 
+                                                        //     ReduxDispatch(updateSection({section: 'productPrice', payload: {variantPrice: {fontSize: Math.min(Math.max(value, 1), 3.8)}}}))
+                                                        // }
+                                                        onChange={(value: number) =>
+                                                            ReduxDispatch(updateNestedField({
+                                                                path: ['productPrice', 'variantPrice', 'fontSize'],
+                                                                value: Math.min(Math.max(value, 1), 3.8)
+                                                            }))
+                                                        }
+                                                        suffix={
+                                                            <p style={{ minWidth: "24px", textAlign: "right" }}>
+                                                                <strong>{Math.floor(ReduxProductPrice.variantPrice.fontSize * 10)}px</strong>
+                                                            </p>
+                                                        }
+                                                    />
+                                                </InlineStack>
+                                            </InlineGrid>
+
+                                        </>
+                                    )}
+
+
+                                    {ReduxProductPrice.variantPrice.showVariantPrice && (
+
+                                        <Divider />
+                                    )}
+
+
+                                    <ToggleRow
+                                        label="Variant Price"
+                                        enabled={ReduxProductPrice.singlePrice.applySinglePrice}
+                                        onToggle={() =>
+                                            ReduxDispatch(updateNestedField({
+                                                path: ['productPrice', 'singlePrice', 'applySinglePrice'],
+                                                value: !ReduxProductPrice.singlePrice.applySinglePrice
+                                            }))
+                                        }
+                                    />
+
+
+                                    {ReduxProductPrice.singlePrice.applySinglePrice && (
+                                        <>
+                                            <InlineStack gap="100" align="space-between" blockAlign="center" wrap={false}>
+                                                <Text as="p" variant="bodyMd">Color</Text>
+                                                <Select
+                                                    options={ProductSinglePriceColor}
+                                                    labelInline
+                                                    label={
+                                                        <Box
+                                                            as="span"
+                                                            style={{
+                                                                width: '20px',
+                                                                height: '20px',
+                                                                background: ReduxColorScheme[ReduxProductPrice.singlePrice.colorScheme]?.text,
+                                                                borderRadius: '50%',
+                                                                display: 'block',
+                                                            }}
+                                                        />
+                                                    }
+                                                    value={ReduxProductPrice.singlePrice.colorScheme}
+                                                    // onChange={(value) => ReduxDispatch(updateSection({section: 'productPrice', payload: {singlePrice: {color: value}}}))}
+                                                    onChange={(value) => {
+                                                        ReduxDispatch(updateNestedField({
+                                                            path: ['productPrice', 'singlePrice', 'colorScheme'],
+                                                            value: value
+                                                        }))
+
+
+                                                        ReduxDispatch(updateNestedField({
+                                                            path: ['productPrice', 'singlePrice', 'color'],
+                                                            value: ReduxColorScheme[value]?.text
+                                                        }))
+
+                                                    }
+                                                    }
+                                                />
+
+                                                <input
+                                                    type="hidden"
+                                                    name="ProductTitlecolor"
+                                                    value={ReduxProductPrice.singlePrice.colorScheme ?? ReduxColorScheme[ReduxProductPrice.singlePrice.colorScheme]?.text}
+                                                />
+                                            </InlineStack>
+
+                                        </>
+                                    )}
+
+
+                                    {ReduxProductPrice.singlePrice.applySinglePrice && (
+
+                                        <Divider />
+                                    )}
+
+
+
+                                    {/* Toggle for zero-to-free conversion */}
+                                    <ToggleRow
+                                        label="Zero price as free"
+                                        enabled={ReduxProductPrice.showZeroToFree}
+                                        onToggle={() => ReduxDispatch(updateSection({ section: 'productPrice', payload: { showZeroToFree: !ReduxProductPrice.showZeroToFree } }))}
+                                    />
+
+
                                 </>
-                            ) }
-
-
-                            {settingfromDb.productPrice.variantPrice.showVariantPrice  && (
-
-                            <Divider />
-                         )}
-
-                            
-                            <InlineStack gap="100" align="space-between" blockAlign="center" wrap={false}>
-                                <Text as="p" variant="bodyMd">Single price Color</Text>
-                                <Select
-                                    options={ProductSinglePriceColor}
-                                    value={settingfromDb.productPrice.singlePriceColor}
-                                    onChange={(value) => dispatch({type: "UPDATE_PRODUCT_PRICE", payload: {singlePriceColor : value}})}
-                                />
-                            </InlineStack>
-
-
-                            {/* Toggle for zero-to-free conversion */}
-                            <ToggleRow
-                                label="Zero price as free"
-                                enabled={settingfromDb.productPrice.showZeroToFree}
-                                onToggle={() => dispatch({type: "UPDATE_PRODUCT_PRICE", payload: {showZeroToFree: !settingfromDb.productPrice.showZeroToFree}})}
-                            />
-
-
-</>
-)}
+                            )}
                         </BlockStack>
                     </Box>
                 </Collapsible>
@@ -792,30 +916,30 @@ export default function TabsProductCard({ settingfromDb , dispatch , developerMo
                                 </Text>
                                 <Select
                                     options={imageRatioOptions}
-                                    value={settingfromDb.productImage.ratio}
-                                    onChange={(value) => dispatch({type: "UPDATE_PRODUCT_IMAGE", payload: {ratio: value}})}
+                                    value={ReduxProductImage.ratio}
+                                    onChange={(value) => ReduxDispatch(updateSection({ section: 'productImage', payload: { ratio: value } }))}
                                 />
                             </InlineStack>
 
                             {/* Second image on hover */}
                             <ToggleRow
                                 label="Second image on hover"
-                                enabled={settingfromDb.productImage.onHover}
-                                onToggle={() => dispatch({type: "UPDATE_PRODUCT_IMAGE", payload: {onHover: !settingfromDb.productImage.onHover}})}
+                                enabled={ReduxProductImage.onHover}
+                                onToggle={() => ReduxDispatch(updateSection({ section: 'productImage', payload: { onHover: !ReduxProductImage.onHover } }))}
                             />
 
                             {/* Show variant image */}
                             <ToggleRow
                                 label="Show Variant Image"
-                                enabled={settingfromDb.productImage.showVariantImage}
-                                onToggle={() => dispatch({type: "UPDATE_PRODUCT_IMAGE", payload: {showVariantImage: !settingfromDb.productImage.showVariantImage}})}
+                                enabled={ReduxProductImage.showVariantImage}
+                                onToggle={() => ReduxDispatch(updateSection({ section: 'productImage', payload: { showVariantImage: !ReduxProductImage.showVariantImage } }))}
                             />
 
                             {/* Crop image toggle */}
                             <ToggleRow
                                 label="Crop media to fit"
-                                enabled={settingfromDb.productImage.cropImage}
-                                onToggle={() => dispatch({type: "UPDATE_PRODUCT_IMAGE", payload: {cropImage: !settingfromDb.productImage.cropImage}})}
+                                enabled={ReduxProductImage.cropImage}
+                                onToggle={() => ReduxDispatch(updateSection({ section: 'productImage', payload: { cropImage: !ReduxProductImage.cropImage } }))}
                             />
 
                             {/* Crop position */}
@@ -828,9 +952,9 @@ export default function TabsProductCard({ settingfromDb , dispatch , developerMo
                                         <Button
                                             key={pos}
                                             size="slim"
-                                            pressed={settingfromDb.productImage.cropType === pos}
+                                            pressed={ReduxProductImage.cropType === pos}
                                             onClick={() =>
-                                                dispatch({type: "UPDATE_PRODUCT_IMAGE", payload: {cropType: pos}})}
+                                                ReduxDispatch(updateSection({ section: 'productImage', payload: { cropType: pos } }))}
                                         >
                                             {pos.charAt(0).toUpperCase() + pos.slice(1)}
                                         </Button>
@@ -853,12 +977,12 @@ export default function TabsProductCard({ settingfromDb , dispatch , developerMo
                                         min={0}
                                         step={1}
                                         max={25}
-                                        value={settingfromDb.productImage.padding}
-                                        onChange={(value) => dispatch({type: "UPDATE_PRODUCT_IMAGE", payload: {padding: value}})}
+                                        value={ReduxProductImage.padding}
+                                        onChange={(value) => ReduxDispatch(updateSection({ section: 'productImage', payload: { padding: value } }))}
                                         suffix={
                                             <p style={{ minWidth: '24px', textAlign: 'right' }}>
                                                 <strong>
-                                                    {Math.floor((settingfromDb.productImage.padding))}px
+                                                    {Math.floor((ReduxProductImage.padding))}px
                                                 </strong>
                                             </p>
                                         }
@@ -868,19 +992,19 @@ export default function TabsProductCard({ settingfromDb , dispatch , developerMo
 
 
                             {developerMode && (
-                <TextField
-                  label={<Text variant="bodyMd" as="span" tone="critical" fontWeight="bold">Image Custom Class</Text>}
-                  tone="magic"
-                  value={settingfromDb.productImage.customClass}
-                  onChange={(value) =>
-                    dispatch({
-                      type: "UPDATE_PRODUCT_IMAGE",
-                      payload: { customClass: value  },
-                    })
-                  }
-                  autoComplete="off"
-                />
-              )} 
+                                <TextField
+                                    label={<Text variant="bodyMd" as="span" tone="critical" fontWeight="bold">Image Custom Class</Text>}
+                                    tone="magic"
+                                    value={ReduxProductImage.customClass}
+                                    onChange={(value) =>
+                                        ReduxDispatch(updateSection({
+                                            section: 'productImage',
+                                            payload: { customClass: value },
+                                        }))
+                                    }
+                                    autoComplete="off"
+                                />
+                            )}
 
                         </BlockStack>
                     </Box>

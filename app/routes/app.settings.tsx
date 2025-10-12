@@ -1,8 +1,4 @@
-/**
- * Optimized Settings Page with Static Data
- * TypeScript implementation with theme management
- */
-import { useCallback, useEffect, useReducer, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -32,8 +28,9 @@ import { updateShopSettings } from "db/updateShopSettings";
 import { SaveBar, useAppBridge } from "@shopify/app-bridge-react";
 import RecoraDiv from "app/component/recoracomponent/RecoraDiv";
 import DesktopPreview from "app/component/recoracomponent/PreviewRight/DesktopPreview";
-import Mobile from "app/component/recoracomponent/PreviewRight/Mobile";
-import Tablet from "app/component/recoracomponent/PreviewRight/Tablet";
+import { useDispatch, useSelector } from "react-redux";
+import { setGlobalSettings } from "app/redux/slices/globalSettingsSlice";
+import { RootState } from "app/redux/store/store";
 
 // TypeScript interfaces for better type safety
 interface ColorSchemeData {
@@ -41,7 +38,17 @@ interface ColorSchemeData {
     text: string;
     text_Secondary: string;
     background: string;
-    border: string;
+    card_border: string;
+    button_background: string;
+    button_text: string;
+    button_outline: string;
+    button_hover_background: string;
+    button_hovertext: string;
+    button_hover_outline: string;
+    icon_color: string;
+    icon_hover_color: string;
+    icon_background: string;
+    icon_hover_background: string;
   };
 }
 
@@ -76,7 +83,7 @@ interface ProductPriceSettings {
   comparePrice: {
     showComparePrice: boolean;
     color: string;
-    fontSize:number;
+    fontSize: number;
   };
   showZeroToFree: boolean;
 }
@@ -186,6 +193,7 @@ query Products($first: Int) {
 export const action = async ({ request }: { request: Request }) => {
   const formData = await request.formData();
   const payload = formData.get("payload") as string;
+  // console.log(payload, "payload from action");
 
   const globalSetting = {
     globalSettings: JSON.parse(payload),
@@ -199,17 +207,19 @@ export const action = async ({ request }: { request: Request }) => {
 // Static loader that returns static data
 export const loader = async ({ request }: { request: Request }) => {
 
-  const { session , admin } = await authenticate.admin(request);
+  const { session, admin } = await authenticate.admin(request);
   const defaultSettings = await getShopSettings(session.shop);
-    const url = new URL(request.url);
+  const url = new URL(request.url);
   const isDeveloper = url.searchParams.get("r3c0r@") === "true";
 
-   const response = await admin.graphql(query, { variables: { first: 10 } });
+  const response = await admin.graphql(query, { variables: { first: 10 } });
   const products = await response.json();
 
 
+  // #up: settings  ki  bhejne  vali  value ko change karna  h correct way m  y  settings.value.payload  m nhi bhejna  h 
+
   return {
-    developerMode:isDeveloper,
+    developerMode: isDeveloper,
     products: products.data.products.edges,
     settings: { value: { payload: JSON.stringify(defaultSettings) } },
   };
@@ -218,17 +228,27 @@ export const loader = async ({ request }: { request: Request }) => {
 
 
 
-
 export default function AdditionalPage() {
 
-const shopify = useAppBridge();
+  const shopify = useAppBridge();
+  const reduxDispatch = useDispatch();
+ const globalSettings = useSelector((state: RootState) => state.globalSettings);
 
-useEffect(()=>{
-  shopify.loading(true);
-  shopify.loading(false);
-})
+const initialSettingsRef = useRef<any | null>(null);
 
-const handleSave = () => {
+const saveBarTimerRef = useRef<number | null>(null);
+
+
+
+
+
+
+  useEffect(() => {
+    shopify.loading(true);
+    shopify.loading(false);
+  }, [])
+
+  const handleSave = () => {
     document.querySelector("form")?.requestSubmit();
     shopify.toast.show('Seetings Save');
     shopify.saveBar.hide('global-settings');
@@ -238,9 +258,9 @@ const handleSave = () => {
     console.log('Discarding');
     // shopify.toast.show('Seetings Discard');
     shopify.saveBar.hide('global-settings');
-    
+
   };
-  
+
   // tab Variables
   const [selected, setSelected] = useState<number>(0);
 
@@ -248,281 +268,70 @@ const handleSave = () => {
     setSelected(selectedTabIndex);
   }, []);
 
-  const { developerMode , products, settings } = useLoaderData<LoaderData>();
+  const { developerMode, products, settings } = useLoaderData<LoaderData>();
+
+
+useEffect(() => {
+    if (settings && !initialSettingsRef.current) {
+      // loader returns settings.value.payload stringified - adjust if different
+      const settingFromDb = JSON.parse(settings.value.payload);
+      initialSettingsRef.current = settingFromDb.globalSettings ?? settingFromDb;
+      // set initial into redux (you already do this)
+      reduxDispatch(setGlobalSettings(initialSettingsRef.current));
+    }
+  }, [settings, reduxDispatch]);
+
+
+
+
+
+   useEffect(() => {
+    // if we don't yet have initial value, do nothing
+    if (!initialSettingsRef.current) return;
+
+    // compare (simple method)
+    const a = JSON.stringify(initialSettingsRef.current);
+    const b = JSON.stringify(globalSettings);
+
+    // debounce small delay to avoid flicker on many updates
+    if (saveBarTimerRef.current) {
+      window.clearTimeout(saveBarTimerRef.current);
+    }
+    saveBarTimerRef.current = window.setTimeout(() => {
+      if (a !== b) {
+        // settings changed -> show SaveBar
+        try {
+          shopify.saveBar.show?.('global-settings');
+        } catch (err) {
+          console.warn("SaveBar show error", err);
+        }
+      } else {
+        // settings same as initial -> hide SaveBar
+        try {
+          shopify.saveBar.hide?.('global-settings');
+        } catch (err) {
+          console.warn("SaveBar hide error", err);
+        }
+      }
+    }, 200); // 200ms debounce; change if needed
+
+    // cleanup not strictly necessary here
+    return () => {
+      if (saveBarTimerRef.current) {
+        window.clearTimeout(saveBarTimerRef.current);
+      }
+    };
+  }, [globalSettings, shopify]);
+
+
+
+ 
+  console.log(globalSettings , "globalSettings 5555555555555");
 
 
  
 
-  const settingfromDb = JSON.parse(settings.value.payload) ;
 
-  // const {shop , settingsData} = settings.value
-
-  type Action =
-    // | {
-    //     type: "UPDATE_FONT_SIZE";
-    //     section: "productTitle" | "productPrice";
-    //     payload: number;
-    //   }
-    // | 
-    {
-        type: "UPDATE_COLOR_SCHEME";
-        schemeName: string;
-        payload: {
-          text: string;
-          text_Secondary: string;
-          background: string;
-          border: string;
-        };
-      }
-    | {
-        type: "UPDATE_PRODUCT_IMAGE";
-        payload: {
-          customClass: string;
-          ratio: string;
-          onHover: boolean;
-          showVariantImage: boolean;
-          cropImage: boolean;
-          cropType: "top" | "center" | "bottom";
-          padding: number;
-        };
-      }
-    | {
-        type: "UPDATE_COMMANVIEW";
-        payload: {
-          customClass:string;
-          layoutValue: string;
-          totalProduct: number;
-          heading:{
-            fontSize:number;
-            color:string;
-            textAlign:string;
-            customClass:string;
-          },
-          subHeading:{
-            customClass:string;
-            fontSize:number;
-            color:string;
-            textAlign:string;
-          },
-          desktop: {
-            rangeProValue: number;
-            viewType: string;
-            screenSize:string;
-          };
-          mobile: {
-            rangeProValue: number;
-            viewType: string;
-            screenSize:string;
-          };
-          tablet: {
-            rangeProValue: number;
-            viewType: string;
-            screenSize:string;
-          };
-        };
-      }
-    | {
-        type: "UPDATE_PRODUCT_TITLE";
-        payload: {
-          showTitle: boolean;
-          titleClip: boolean;
-          color: string;
-          fontSize: number;
-          customClass: string;
-        };
-      }
-    | {
-        type: "UPDATE_PRODUCT_PRICE";
-        payload: {
-          showPrice: boolean;
-          color: string;
-          fontSize: number;
-          customClass: string;
-          comparePrice: {
-            fontSize:number;
-            showComparePrice: boolean;
-            color: string;
-          };
-          variantPrice:{
-            fontSize:number;
-            showVariantPrice: boolean;
-            color: string;
-          };
-          singlePriceColor:string;
-          showZeroToFree: boolean;
-        };
-      }
-    | {
-        type: "UPDATE_PRODUCT_CARD";
-        payload: {
-          customClass: string;
-          cardStyle: string;
-          reviewType: string;
-          wishlist: string;
-          colorScheme: string;
-          showVendor: boolean;
-          textAlignType: string;
-        };
-      };
-
-  function reducer(
-    state: typeof settingfromDb,
-    action: Action,
-  ): typeof settingfromDb {
-    switch (action.type) {
-      case "UPDATE_COMMANVIEW":
-        return {
-          ...state,
-          globalSettings: {
-            ...state.globalSettings,
-            commanView: {
-              ...state.globalSettings.commanView,
-              ...action.payload,
-              heading:{
-              ...state.globalSettings.commanView.heading,
-                ...action.payload.heading,
-              },
-              subHeading:{
-                ...state.globalSettings.commanView.subHeading,
-                ...action.payload.subHeading,
-              },
-              desktop: {
-                ...state.globalSettings.commanView.desktop,
-                ...action.payload.desktop,
-              },
-              mobile: {
-                ...state.globalSettings.commanView.mobile,
-                ...action.payload.mobile,
-              },
-              tablet: {
-                ...state.globalSettings.commanView.tablet,
-                ...action.payload.tablet,
-              },
-            },
-          },
-        };  
-      case "UPDATE_COLOR_SCHEME":
-        return {
-          ...state,
-          globalSettings: {
-            ...state.globalSettings,
-            colorScheme: {
-              ...state.globalSettings.colorScheme,
-              [action.schemeName]: {
-                ...state.globalSettings.colorScheme[action.schemeName],
-                ...action.payload,
-              },
-            },
-          },
-        };
-
-      case "UPDATE_PRODUCT_IMAGE":
-        return {
-          ...state,
-          globalSettings: {
-            ...state.globalSettings,
-            productImage: {
-              ...state.globalSettings.productImage,
-              ...action.payload,
-            },
-          },
-        };
-      case "UPDATE_PRODUCT_TITLE":
-        return {
-          ...state,
-          globalSettings: {
-            ...state.globalSettings,
-            productTitle: {
-              ...state.globalSettings.productTitle,
-              ...action.payload,
-            },
-          },
-        };
-      case "UPDATE_PRODUCT_PRICE":
-        return {
-          ...state,
-          globalSettings: {
-            ...state.globalSettings,
-            productPrice: {
-              ...state.globalSettings.productPrice,
-              ...action.payload,
-              comparePrice: {
-                ...state.globalSettings.productPrice.comparePrice,
-                ...action.payload.comparePrice,
-              },
-              variantPrice:{
-                ...state.globalSettings.productPrice.variantPrice,
-                ...action.payload.variantPrice,
-              }
-            },
-          },
-        };
-      case "UPDATE_PRODUCT_CARD":
-        return {
-          ...state,
-          globalSettings: {
-            ...state.globalSettings,
-            productCard: {
-              ...state.globalSettings.productCard,
-              ...action.payload,
-            },
-          },
-        };
-      default:
-        return state;
-    }
-  }
-
-  const [finalsettings, dispatch] = useReducer(reducer, settingfromDb);
-
-
-  const customDispatch = (action: Action) => {
-  dispatch(action);
-  shopify.saveBar.show('global-settings')
-
-};
-
-
-  const renderTabContent = () => {
-    switch (selected) {
-      case 0:
-        return (
-          <TabsColor
-            settingfromDb={finalsettings.globalSettings}
-            dispatch={customDispatch}
-          />
-        );
-      case 1:
-        return (
-          <TabsProductCard
-            settingfromDb={finalsettings.globalSettings}
-            dispatch={customDispatch}
-            developerMode={developerMode}
-          />
-        );
-      case 2:
-        return (
-          <TabsLayout
-            settingfromDb={finalsettings.globalSettings}
-            dispatch={customDispatch}
-            developerMode={developerMode}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
-  // const [open, setOpen] = useState(false);
-
-  // collapasble
-  // const [openSection, setOpenSection] = useState(null);
-
-  // const handleToggle = (section) => {
-  //   setOpenSection(openSection === section ? null : section);
-  // };
-
-  // // preview  tabs
 
   const [previewStyle, setPreviewStyle] = useState("desktop");
   const [disableDesktop, setDisableDesktop] = useState(false);
@@ -531,26 +340,26 @@ const handleSave = () => {
 
   useEffect(() => {
     const handleResize = () => {
-      
-      if(window.innerWidth >= 768){
+
+      if (window.innerWidth >= 768) {
         setDisableDesktop(false)
-    setDisableTablet(false)
-      setPreviewStyle("desktop")
-    }
-      else if(window.innerWidth < 768 && window.innerWidth > 549){
+        setDisableTablet(false)
+        setPreviewStyle("desktop")
+      }
+      else if (window.innerWidth < 768 && window.innerWidth > 549) {
         setDisableDesktop(true)
-      setPreviewStyle("tablet")
-    }
-  else{
-    setDisableDesktop(true)
-    setDisableTablet(true)
-      setPreviewStyle("mobile")
-  }
-  };
-  
+        setPreviewStyle("tablet")
+      }
+      else {
+        setDisableDesktop(true)
+        setDisableTablet(true)
+        setPreviewStyle("mobile")
+      }
+    };
+
     handleResize(); // initial check on mount
     window.addEventListener("resize", handleResize);
-  
+
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
@@ -565,14 +374,14 @@ const handleSave = () => {
       <RecoraDiv style={{ maxWidth: "1024px", margin: "0 auto" }}>
         <Page
           fullWidth={true}
-          title="Settings"          
+          title="Settings"
         >
           <SaveBar
-          id="global-settings"          
-           >
-          <button variant="primary" onClick={handleSave}></button>
-        <button onClick={handleDiscard}></button>
-        </SaveBar>
+            id="global-settings"
+          >
+            <button variant="primary" onClick={handleSave}></button>
+            <button onClick={handleDiscard}></button>
+          </SaveBar>
           <Layout sectioned={false}>
             <Layout.Section>
               <Card background="bg-surface" padding="0" roundedAbove="sm">
@@ -588,14 +397,13 @@ const handleSave = () => {
                     columns={{ xs: 1, sm: 1, lg: 2, xl: 2, md: 2 }}
                     alignItems="center"
                   >
-
-                    {tabs && 
-                    <Tabs
-                      tabs={tabs}
-                      selected={selected}
-                      onSelect={handleTabChange}
-                      disclosureText="More views"
-                    />
+                    {tabs &&
+                      <Tabs
+                        tabs={tabs}
+                        selected={selected}
+                        onSelect={handleTabChange}
+                        disclosureText="More views"
+                      />
                     }
                     <InlineStack wrap={true} gap="100" align="end">
                       <ButtonGroup
@@ -606,7 +414,7 @@ const handleSave = () => {
                       >
                         <Tooltip content="Desktop View" dismissOnMouseOut>
                           <Button
-                          disabled={disableDesktop}
+                            disabled={disableDesktop}
                             size="large"
                             pressed={previewStyle === "desktop"}
                             onClick={() => {
@@ -618,7 +426,7 @@ const handleSave = () => {
                         </Tooltip>
                         <Tooltip content="Tablet View" dismissOnMouseOut>
                           <Button
-                          disabled={disableTablet}
+                            disabled={disableTablet}
                             size="large"
                             pressed={previewStyle === "tablet"}
                             onClick={() => {
@@ -649,43 +457,35 @@ const handleSave = () => {
                   <Grid>
                     <Grid.Cell columnSpan={{ xs: 6, sm: 6, lg: 3, xl: 3 }}>
                       {/* <Scrollable  style={{ height: '70vh' }} > */}
-                      {renderTabContent()}
+                      <div style={{ display: selected === 0 ? 'block' : 'none' }}>
+                        <TabsColor
+                        />
+                      </div>
+                      <div style={{ display: selected === 1 ? 'block' : 'none' }}>
+                        <TabsProductCard
+                          settingfromDb={globalSettings}
+                          developerMode={developerMode}
+                        />
+                      </div>
+                      <div style={{ display: selected === 2 ? 'block' : 'none' }}>
+                        <TabsLayout
+                          settingfromDb={globalSettings}
+                          developerMode={developerMode}
+                        />
+                      </div>
                     </Grid.Cell>
 
-                    <Grid.Cell
-                      columnSpan={{ xs: 6, sm: 6, md: 6, lg: 9, xl: 9 }}
-                    >
+                    <Grid.Cell columnSpan={{ xs: 6, sm: 6, md: 6, lg: 9, xl: 9 }}>
                       <Box padding={"300"}>
-
-
-
-                        {/* <TabsLayout  settingfromDb={settingfromDb} /> */}
-
-                          {/* { previewStyle === "mobile" && 
-
-                          <Mobile />
-
-                          } */}
-
-
-{/* 
-                          {previewStyle === "tablet" && 
-                          
-                          <Tablet />
-                          
-                          } */}
-
-
                         {/* {previewStyle === "desktop" &&  */}
-                        <DesktopPreview  products={products} previewStyle={previewStyle} payload={finalsettings.globalSettings} />
+                        <DesktopPreview products={products} previewStyle={previewStyle} payload={globalSettings} />
                         {/* } */}
                       </Box>
                     </Grid.Cell>
                     <input
                       type="hidden"
                       name="payload"
-                      value={JSON.stringify(finalsettings.globalSettings)}
-
+                      value={JSON.stringify(globalSettings)}
                     />
                   </Grid>
                 </Box>

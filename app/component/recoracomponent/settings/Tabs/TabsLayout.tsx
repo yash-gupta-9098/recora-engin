@@ -17,8 +17,11 @@ import {
   Select,
   Tooltip,
 } from "@shopify/polaris";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect, useMemo } from "react";
 import { Icon } from "@shopify/polaris";
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from 'app/redux/store/store';
+import { updateNestedField, updateSection } from 'app/redux/slices/globalSettingsSlice';
 import {
   ChevronDownIcon,
   ChevronUpIcon,
@@ -74,32 +77,40 @@ export default function TabsLayout({
   dispatch,
   developerMode,
 }: Props) {
-  const [selectedColorSchemes, setSelectedColorSchemes] = useState<any>(
-    settingfromDb.colorScheme,
-  );
-  const HeadingColor = [
-    { label: "Scheme 1", value: selectedColorSchemes["Scheme 1"].text },
-    { label: "Scheme 2", value: selectedColorSchemes["Scheme 2"].text },
-  ];
+  // Redux hooks
+  const ReduxDispatch = useDispatch();
+  const ReduxColorScheme = useSelector((state: RootState) => state.globalSettings.colorScheme);
+  const ReduxCommanView = useSelector((state: RootState) => state.globalSettings.commanView);
 
-  const SubHeadingColor = [
-    { label: "Scheme 1", value: selectedColorSchemes["Scheme 1"].text },
-    { label: "Scheme 2", value: selectedColorSchemes["Scheme 2"].text },
-  ];
+  useEffect(() => {
+    console.log("TabsLayout - Redux state updated")
+  }, [ReduxColorScheme, ReduxCommanView]);
+  // const [selectedColorSchemes, setSelectedColorSchemes] = useState<any>(
+  //   settingfromDb.colorScheme,
+  // );
+  const HeadingColor = useMemo(() => [
+    { label: "Scheme 1", value: ReduxColorScheme["Scheme 1"]?.text || settingfromDb.colorScheme["Scheme 1"].text },
+    { label: "Scheme 2", value: ReduxColorScheme["Scheme 2"]?.text || settingfromDb.colorScheme["Scheme 2"].text },
+  ], [ReduxColorScheme, settingfromDb.colorScheme]);
+
+  const SubHeadingColor = useMemo(() => [
+    { label: "Scheme 1", value: ReduxColorScheme["Scheme 1"]?.text || settingfromDb.colorScheme["Scheme 1"].text },
+    { label: "Scheme 2", value: ReduxColorScheme["Scheme 2"]?.text || settingfromDb.colorScheme["Scheme 2"].text },
+  ], [ReduxColorScheme, settingfromDb.colorScheme]);
 
   // Common view state
-  // const [layoutValue, setLayoutValue] = useState(settingfromDb.commanView.layoutValue);
-  // const [totalProduct, setTotalProduct] = useState(settingfromDb.commanView.totalProduct);
+  // const [layoutValue, setLayoutValue] = useState(ReduxCommanView.layoutValue);
+  // const [totalProduct, setTotalProduct] = useState(ReduxCommanView.totalProduct);
   const [popoverActive, setPopoverActive] = useState(false);
 
   // Device-specific states
-  // const [desktopSettings, setDesktopSettings] = useState(settingfromDb.commanView.desktop);
-  // const [tabletSettings, setTabletSettings] = useState(settingfromDb.commanView.tablet);
-  // const [mobileSettings, setMobileSettings] = useState(settingfromDb.commanView.mobile);
+  // const [desktopSettings, setDesktopSettings] = useState(ReduxCommanView.desktop);
+  // const [tabletSettings, setTabletSettings] = useState(ReduxCommanView.tablet);
+  // const [mobileSettings, setMobileSettings] = useState(ReduxCommanView.mobile);
 
-  const desktopSettings = settingfromDb.commanView.desktop;
-  const tabletSettings = settingfromDb.commanView.tablet;
-  const mobileSettings = settingfromDb.commanView.mobile;
+  const desktopSettings = ReduxCommanView.desktop;
+  const tabletSettings = ReduxCommanView.tablet;
+  const mobileSettings = ReduxCommanView.mobile;
 
   // console.log(desktopSettings , "desktopSettings new")
 
@@ -111,10 +122,10 @@ export default function TabsLayout({
   const handleTotalProductRange = useCallback((value: number) => {
     // dispatch({ type: "UPDATE_TOTAL_PRODUCT", payload: (value > 20 ? 20 : value < 1 ? 1 : value) })
     // dispatch({ type: "UPDATE_TOTAL_PRODUCT", payload: (value > 20 ? 20 : value < 1 ? 1 : value) })
-    dispatch({
-      type: "UPDATE_COMMANVIEW",
+    ReduxDispatch(updateSection({
+      section: 'commanView',
       payload: { totalProduct: value > 20 ? 20 : value < 1 ? 1 : value },
-    });
+    }));
     // setTotalProduct(value > 20 ? 20 : value < 1 ? 1 : value);
   }, []);
 
@@ -134,6 +145,12 @@ export default function TabsLayout({
   //   },
   //   [],
   // );
+
+
+
+  const handleNestedChange = (path: string[], value: any) => {
+    ReduxDispatch(updateNestedField({ path, value }));
+  };
 
   // Collapse section control
   const [openSection, setOpenSection] = useState<string | null>(
@@ -212,10 +229,10 @@ export default function TabsLayout({
                       // onClick={() => handleViewTypeChange('grid', setDesktopSettings, desktopSettings)}
                       // onClick={() => dispatch({ type: "UPDATE_VIEW_TYPE", device: "desktop", payload: "grid" })}
                       onClick={() =>
-                        dispatch({
-                          type: "UPDATE_COMMANVIEW",
-                          payload: { desktop: { viewType: "grid" } },
-                        })
+                        ReduxDispatch(updateNestedField({
+                          path: ['commanView', 'desktop', 'viewType'],
+                          value: "grid"
+                        }))
                       }
                     >
                       Grid
@@ -229,10 +246,10 @@ export default function TabsLayout({
                       }
                       // onClick={() => dispatch({ type: "UPDATE_VIEW_TYPE", device: "desktop", payload: "slider" })}
                       onClick={() =>
-                        dispatch({
-                          type: "UPDATE_COMMANVIEW",
-                          payload: { desktop: { viewType: "slider" } },
-                        })
+                        ReduxDispatch(updateNestedField({
+                          path: ['commanView', 'desktop', 'viewType'],
+                          value: "slider"
+                        }))
                       }
                     >
                       Slider
@@ -255,7 +272,7 @@ export default function TabsLayout({
                       icon={LayoutPopupIcon} // Replace with custom icon if needed
                       onClick={togglePopoverActive}
                     >
-                      {settingfromDb.commanView.layoutValue}
+                      {ReduxCommanView.layoutValue}
                     </Button>
                   }
                   autofocusTarget="none"
@@ -274,32 +291,32 @@ export default function TabsLayout({
                         {
                           content: "Layout 1",
                           active:
-                            settingfromDb.commanView.layoutValue == "Layout 1",
+                            ReduxCommanView.layoutValue == "Layout 1",
                           onAction: () =>
-                            dispatch({
-                              type: "UPDATE_COMMANVIEW",
+                            ReduxDispatch(updateSection({
+                              section: 'commanView',
                               payload: { layoutValue: "Layout 1" },
-                            }),
+                            })),
                         },
                         {
                           content: "Layout 2",
                           active:
-                            settingfromDb.commanView.layoutValue == "Layout 2",
+                            ReduxCommanView.layoutValue == "Layout 2",
                           onAction: () =>
-                            dispatch({
-                              type: "UPDATE_COMMANVIEW",
+                            ReduxDispatch(updateSection({
+                              section: 'commanView',
                               payload: { layoutValue: "Layout 2" },
-                            }),
+                            })),
                         },
                         {
                           content: "Layout 3",
                           active:
-                            settingfromDb.commanView.layoutValue == "Layout 3",
+                            ReduxCommanView.layoutValue == "Layout 3",
                           onAction: () =>
-                            dispatch({
-                              type: "UPDATE_COMMANVIEW",
+                            ReduxDispatch(updateSection({
+                              section: 'commanView',
                               payload: { layoutValue: "Layout 3" },
-                            }),
+                            })),
                         },
                       ]}
                     />
@@ -321,7 +338,7 @@ export default function TabsLayout({
                     label=" "
                     min={1}
                     max={20}
-                    value={settingfromDb.commanView.totalProduct}
+                    value={ReduxCommanView.totalProduct}
                     onChange={handleTotalProductRange}
                     output
                     suffix={
@@ -329,7 +346,7 @@ export default function TabsLayout({
                         <TextField
                           autoSize
                           type="number"
-                          value={settingfromDb.commanView.totalProduct}
+                          value={ReduxCommanView.totalProduct}
                           onChange={handleTotalProductRange}
                           min={1}
                           max={20}
@@ -346,12 +363,12 @@ export default function TabsLayout({
                 <TextField
                   label={<Text variant="bodyMd" as="span" tone="critical" fontWeight="bold">Layout Custom Class</Text>}
                   tone="magic"
-                  value={settingfromDb.commanView.customClass}
+                  value={ReduxCommanView.customClass}
                   onChange={(value: string) =>
-                    dispatch({
-                      type: "UPDATE_COMMANVIEW",
+                    ReduxDispatch(updateSection({
+                      section: 'commanView',
                       payload: { customClass: value },
-                    })
+                    }))
                   }
                   autoComplete="off"
                 />
@@ -494,16 +511,16 @@ export default function TabsLayout({
                     <RangeSlider
                       label=""
                       min={1}
-                      step={settingfromDb.commanView.desktop.viewType == "slider" ? 0.1 : 1}
+                      step={ReduxCommanView.desktop.viewType == "slider" ? 0.1 : 1}
                       max={6}
-                      value={settingfromDb.commanView.desktop.rangeProValue}
+                      value={ReduxCommanView.desktop.rangeProValue}
                       // onChange={(value) => handleRangeChange(value, max, setter, state)}
                       // onChange={(value) => dispatch({ type: "UPDATE_DEVICE_RANGE", device: "desktop", payload: value })}
                       onChange={(value) =>
-                        dispatch({
-                          type: "UPDATE_COMMANVIEW",
-                          payload: { desktop: { rangeProValue: value } },
-                        })
+                        ReduxDispatch(updateNestedField({
+                          path: ['commanView', 'desktop', 'rangeProValue'],
+                          value: value
+                        }))
                       }
                       output
                       suffix={
@@ -511,15 +528,15 @@ export default function TabsLayout({
                           <TextField
                             type="integer"
                             value={
-                              settingfromDb.commanView.desktop.rangeProValue
+                              ReduxCommanView.desktop.rangeProValue
                             }
                             // onChange={(value) => handleRangeChange(Number(value), max, setter, state)}
                             // onChange={(value) => dispatch({ type: "UPDATE_DEVICE_RANGE", device: "dektop", payload: value })}
                             onChange={(value) =>
-                              dispatch({
-                                type: "UPDATE_COMMANVIEW",
+                              ReduxDispatch(updateSection({
+                                section: 'commanView',
                                 payload: { desktop: { rangeProValue: value } },
-                              })
+                              }))
                             }
                             min={1}
                             max={6}
@@ -532,19 +549,19 @@ export default function TabsLayout({
                 </InlineGrid>
 
                 {developerMode && (
-                <TextField
-                  label={<Text variant="bodyMd" as="span" tone="critical" fontWeight="bold">Desktop Screen Size</Text>}
-                  tone="magic"
-                  value={settingfromDb.commanView.desktop.screenSize}
-                  onChange={(value) =>
-                    dispatch({
-                      type: "UPDATE_COMMANVIEW",
-                      payload: { desktop : { screenSize: value } },
-                    })
-                  }
-                  autoComplete="off"
-                />
-              )} 
+                  <TextField
+                    label={<Text variant="bodyMd" as="span" tone="critical" fontWeight="bold">Desktop Screen Size</Text>}
+                    tone="magic"
+                    value={ReduxCommanView.desktop.screenSize}
+                    onChange={(value) =>
+                      ReduxDispatch(updateNestedField({
+                        path: ['commanView', 'desktop', 'screenSize'],
+                        value: value
+                      }))
+                    }
+                    autoComplete="off"
+                  />
+                )}
 
 
               </InlineGrid>
@@ -587,17 +604,17 @@ export default function TabsLayout({
                       <Button
                         size="slim"
                         variant={
-                          settingfromDb.commanView.tablet.viewType === "grid"
+                          ReduxCommanView.tablet.viewType === "grid"
                             ? "secondary"
                             : "tertiary"
                         }
                         // onClick={() => handleViewTypeChange('grid', setter, state)}
                         // onClick={() => dispatch({ type: "UPDATE_VIEW_TYPE", device: "tablet", payload: "grid" })}
                         onClick={() =>
-                          dispatch({
-                            type: "UPDATE_COMMANVIEW",
-                            payload: { tablet: { viewType: "grid" } },
-                          })
+                          ReduxDispatch(updateNestedField({
+                            path: ['commanView', 'tablet', 'viewType'],
+                            value: "grid"
+                          }))
                         }
                       >
                         Grid
@@ -605,16 +622,16 @@ export default function TabsLayout({
                       <Button
                         size="slim"
                         variant={
-                          settingfromDb.commanView.tablet.viewType === "slider"
+                          ReduxCommanView.tablet.viewType === "slider"
                             ? "secondary"
                             : "tertiary"
                         }
                         // onClick={() => dispatch({ type: "UPDATE_VIEW_TYPE", device: "tablet", payload: "slider" })}
                         onClick={() =>
-                          dispatch({
-                            type: "UPDATE_COMMANVIEW",
-                            payload: { tablet: { viewType: "slider" } },
-                          })
+                          ReduxDispatch(updateNestedField({
+                            path: ['commanView', 'tablet', 'viewType'],
+                            value: "slider"
+                          }))
                         }
                       >
                         Slider
@@ -635,16 +652,16 @@ export default function TabsLayout({
                     <RangeSlider
                       label=""
                       min={1}
-                      step={settingfromDb.commanView.desktop.viewType == "slider" ? 0.1 : 1}
+                      step={ReduxCommanView.desktop.viewType == "slider" ? 0.1 : 1}
                       max={4}
-                      value={settingfromDb.commanView.tablet.rangeProValue}
+                      value={ReduxCommanView.tablet.rangeProValue}
                       // onChange={(value) => handleRangeChange(value, max, setter, state)}
                       // onChange={(value) => dispatch({ type: "UPDATE_DEVICE_RANGE", device: "tablet", payload: value })}
                       onChange={(value) =>
-                        dispatch({
-                          type: "UPDATE_COMMANVIEW",
-                          payload: { tablet: { rangeProValue: value } },
-                        })
+                        ReduxDispatch(updateNestedField({
+                          path: ['commanView', 'tablet', 'rangeProValue'],
+                          value: value
+                        }))
                       }
                       output
                       suffix={
@@ -652,15 +669,15 @@ export default function TabsLayout({
                           <TextField
                             type="integer"
                             value={
-                              settingfromDb.commanView.tablet.rangeProValue
+                              ReduxCommanView.tablet.rangeProValue
                             }
                             // onChange={(value) => handleRangeChange(Number(value), max, setter, state)}
                             // onChange={(value) => dispatch({ type: "UPDATE_DEVICE_RANGE", device: "tablet", payload: value })}
                             onChange={(value) =>
-                              dispatch({
-                                type: "UPDATE_COMMANVIEW",
+                              ReduxDispatch(updateSection({
+                                section: 'commanView',
                                 payload: { tablet: { rangeProValue: value } },
-                              })
+                              }))
                             }
                             min={1}
                             max={6}
@@ -673,19 +690,19 @@ export default function TabsLayout({
                 </InlineGrid>
 
                 {developerMode && (
-                <TextField
-                  label={<Text variant="bodyMd" as="span" tone="critical" fontWeight="bold">Tablet Screen Size</Text>}
-                  tone="magic"
-                  value={settingfromDb.commanView.tablet.screenSize}
-                  onChange={(value) =>
-                    dispatch({
-                      type: "UPDATE_COMMANVIEW",
-                      payload: { tablet : { screenSize: value } },
-                    })
-                  }
-                  autoComplete="off"
-                />
-              )} 
+                  <TextField
+                    label={<Text variant="bodyMd" as="span" tone="critical" fontWeight="bold">Tablet Screen Size</Text>}
+                    tone="magic"
+                    value={ReduxCommanView.tablet.screenSize}
+                    onChange={(value) =>
+                      ReduxDispatch(updateSection({
+                        section: 'commanView',
+                        payload: { tablet: { screenSize: value } },
+                      }))
+                    }
+                    autoComplete="off"
+                  />
+                )}
               </InlineGrid>
 
               {/* Mobile  */}
@@ -726,17 +743,17 @@ export default function TabsLayout({
                       <Button
                         size="slim"
                         variant={
-                          settingfromDb.commanView.mobile.viewType === "grid"
+                          ReduxCommanView.mobile.viewType === "grid"
                             ? "secondary"
                             : "tertiary"
                         }
                         // onClick={() => handleViewTypeChange('grid', setter, state)}
                         // onClick={() => dispatch({ type: "UPDATE_VIEW_TYPE", device: "mobile", payload: "grid" })}
                         onClick={() =>
-                          dispatch({
-                            type: "UPDATE_COMMANVIEW",
-                            payload: { mobile: { viewType: "grid" } },
-                          })
+                          ReduxDispatch(updateNestedField({
+                            path: ['commanView', 'mobile', 'viewType'],
+                            value: "grid"
+                          }))
                         }
                       >
                         Grid
@@ -744,17 +761,17 @@ export default function TabsLayout({
                       <Button
                         size="slim"
                         variant={
-                          settingfromDb.commanView.mobile.viewType === "slider"
+                          ReduxCommanView.mobile.viewType === "slider"
                             ? "secondary"
                             : "tertiary"
                         }
                         onClick={() =>
-                          dispatch({
-                            type: "UPDATE_COMMANVIEW",
-                            payload: { mobile: { viewType: "slider" } },
-                          })
+                          ReduxDispatch(updateNestedField({
+                            path: ['commanView', 'mobile', 'viewType'],
+                            value: "slider"
+                          }))
                         }
-                        // onClick={() => dispatch({ type: "UPDATE_VIEW_TYPE", device: "mobile", payload: "slider" })}
+                      // onClick={() => dispatch({ type: "UPDATE_VIEW_TYPE", device: "mobile", payload: "slider" })}
                       >
                         Slider
                       </Button>
@@ -774,16 +791,16 @@ export default function TabsLayout({
                     <RangeSlider
                       label=""
                       min={1}
-                      step={settingfromDb.commanView.mobile.viewType == "slider" ? 0.1 : 1}
+                      step={ReduxCommanView.mobile.viewType == "slider" ? 0.1 : 1}
                       max={3}
-                      value={settingfromDb.commanView.mobile.rangeProValue}
+                      value={ReduxCommanView.mobile.rangeProValue}
                       // onChange={(value) => handleRangeChange(value, max, setter, state)}
                       // onChange={(value) => dispatch({ type: "UPDATE_DEVICE_RANGE", device: "mobile", payload: value })}
                       onChange={(value) =>
-                        dispatch({
-                          type: "UPDATE_COMMANVIEW",
-                          payload: { mobile: { rangeProValue: value } },
-                        })
+                        ReduxDispatch(updateNestedField({
+                          path: ['commanView', 'mobile', 'rangeProValue'],
+                          value: value
+                        }))
                       }
                       output
                       suffix={
@@ -791,15 +808,15 @@ export default function TabsLayout({
                           <TextField
                             type="integer"
                             value={
-                              settingfromDb.commanView.mobile.rangeProValue
+                              ReduxCommanView.mobile.rangeProValue
                             }
                             // onChange={(value) => handleRangeChange(Number(value), max, setter, state)}
                             // onChange={(value) => dispatch({ type: "UPDATE_DEVICE_RANGE", device: "mobile", payload: value })}
                             onChange={(value) =>
-                              dispatch({
-                                type: "UPDATE_COMMANVIEW",
+                              ReduxDispatch(updateSection({
+                                section: 'commanView',
                                 payload: { mobile: { rangeProValue: value } },
-                              })
+                              }))
                             }
                             min={1}
                             max={6}
@@ -812,19 +829,19 @@ export default function TabsLayout({
                 </InlineGrid>
 
                 {developerMode && (
-                <TextField
-                  label={<Text variant="bodyMd" as="span" tone="critical" fontWeight="bold">Mobile Screen Size</Text>}
-                  tone="magic"
-                  value={settingfromDb.commanView.mobile.screenSize}
-                  onChange={(value) =>
-                    dispatch({
-                      type: "UPDATE_COMMANVIEW",
-                      payload: { mobile : { screenSize: value } },
-                    })
-                  }
-                  autoComplete="off"
-                />
-              )} 
+                  <TextField
+                    label={<Text variant="bodyMd" as="span" tone="critical" fontWeight="bold">Mobile Screen Size</Text>}
+                    tone="magic"
+                    value={ReduxCommanView.mobile.screenSize}
+                    onChange={(value) =>
+                      ReduxDispatch(updateSection({
+                        section: 'commanView',
+                        payload: { mobile: { screenSize: value } },
+                      }))
+                    }
+                    autoComplete="off"
+                  />
+                )}
               </InlineGrid>
             </BlockStack>
           </Box>
@@ -891,23 +908,19 @@ export default function TabsLayout({
                     min={0.8}
                     step={0.05}
                     max={3.5}
-                    value={Number(settingfromDb.commanView.heading.fontSize)}
+                    value={Number(ReduxCommanView.heading.fontSize)}
                     // onChange={handleHeadingFontSize}
                     onChange={(value: number) =>
-                      dispatch({
-                        type: "UPDATE_COMMANVIEW",
-                        payload: {
-                          heading: {
-                            fontSize: Math.min(Math.max(value, 0.8), 3.6),
-                          },
-                        },
-                      })
+                      ReduxDispatch(updateNestedField({
+                        path: ['commanView', 'heading', 'fontSize'],
+                        value: value
+                      }))
                     }
                     suffix={
                       <p style={{ minWidth: "24px", textAlign: "right" }}>
                         <strong>
                           {Math.floor(
-                            settingfromDb.commanView.heading.fontSize * 20,
+                            ReduxCommanView.heading.fontSize * 20,
                           )}
                           px
                         </strong>
@@ -922,13 +935,13 @@ export default function TabsLayout({
                 </Text>
                 <Select
                   options={HeadingColor}
-                  value={settingfromDb.commanView.heading.color}
+                  value={ReduxCommanView.heading.color}
                   // onChange={(value) => dispatch({type: "UPDATE_PRODUCT_PRICE", payload: {color: value}})}
                   onChange={(value: string) =>
-                    dispatch({
-                      type: "UPDATE_COMMANVIEW",
-                      payload: { heading: { color: value } },
-                    })
+                    ReduxDispatch(updateNestedField({
+                      path: ['commanView', 'heading', 'color'],
+                      value: value
+                    }))
                   }
                 />
               </InlineStack>
@@ -941,14 +954,14 @@ export default function TabsLayout({
                     <Button
                       size="slim"
                       pressed={
-                        settingfromDb.commanView.heading.textAlign === "left"
+                        ReduxCommanView.heading.textAlign === "left"
                       }
                       // onClick={() => dispatch({type: "UPDATE_PRODUCT_CARD", payload: {textAlignType: "left"}})}
                       onClick={() =>
-                        dispatch({
-                          type: "UPDATE_COMMANVIEW",
-                          payload: { heading: { textAlign: "left" } },
-                        })
+                        ReduxDispatch(updateNestedField({
+                          path: ['commanView', 'heading', 'textAlign'],
+                          value: "left"
+                        }))
                       }
                     >
                       <Icon source={TextAlignLeftIcon} />
@@ -959,14 +972,14 @@ export default function TabsLayout({
                     <Button
                       size="slim"
                       pressed={
-                        settingfromDb.commanView.heading.textAlign === "center"
+                        ReduxCommanView.heading.textAlign === "center"
                       }
                       // onClick={() => dispatch({type: "UPDATE_PRODUCT_CARD", payload: {textAlignType: "center"}})}
                       onClick={() =>
-                        dispatch({
-                          type: "UPDATE_COMMANVIEW",
-                          payload: { heading: { textAlign: "center" } },
-                        })
+                        ReduxDispatch(updateNestedField({
+                          path: ['commanView', 'heading', 'textAlign'],
+                          value: "center"
+                        }))
                       }
                     >
                       <Icon source={TextAlignCenterIcon} />
@@ -977,14 +990,14 @@ export default function TabsLayout({
                     <Button
                       size="slim"
                       pressed={
-                        settingfromDb.commanView.heading.textAlign === "right"
+                        ReduxCommanView.heading.textAlign === "right"
                       }
                       // onClick={() =>  dispatch({type: "UPDATE_PRODUCT_CARD", payload: {textAlignType: "right"}})}
                       onClick={() =>
-                        dispatch({
-                          type: "UPDATE_COMMANVIEW",
-                          payload: { heading: { textAlign: "right" } },
-                        })
+                        ReduxDispatch(updateNestedField({
+                          path: ['commanView', 'heading', 'textAlign'],
+                          value: "right"
+                        }))
                       }
                     >
                       <Icon source={TextAlignRightIcon} />
@@ -997,12 +1010,12 @@ export default function TabsLayout({
                 <TextField
                   label={<Text variant="bodyMd" as="span" tone="critical" fontWeight="bold">Heading customClass</Text>}
                   tone="magic"
-                  value={settingfromDb.commanView.heading.customClass}
+                  value={ReduxCommanView.heading.customClass}
                   onChange={(value) =>
-                    dispatch({
-                      type: "UPDATE_COMMANVIEW",
-                      payload: { heading: { customClass: value } },
-                    })
+                    ReduxDispatch(updateNestedField({
+                      path: ['commanView', 'heading', 'customClass'],
+                      value: value
+                    }))
                   }
                   autoComplete="off"
                 />
@@ -1075,23 +1088,19 @@ export default function TabsLayout({
                     min={1}
                     step={0.05}
                     max={3}
-                    value={Number(settingfromDb.commanView.subHeading.fontSize)}
+                    value={Number(ReduxCommanView.subHeading.fontSize)}
                     // onChange={handleHeadingFontSize}
                     onChange={(value: number) =>
-                      dispatch({
-                        type: "UPDATE_COMMANVIEW",
-                        payload: {
-                          subHeading: {
-                            fontSize: Math.min(Math.max(value, 1), 3),
-                          },
-                        },
-                      })
+                      ReduxDispatch(updateNestedField({
+                        path: ['commanView', 'subHeading', 'fontSize'],
+                        value: value
+                      }))
                     }
                     suffix={
                       <p style={{ minWidth: "24px", textAlign: "right" }}>
                         <strong>
                           {Math.floor(
-                            settingfromDb.commanView.subHeading.fontSize * 10,
+                            ReduxCommanView.subHeading.fontSize * 10,
                           )}
                           px
                         </strong>
@@ -1106,13 +1115,13 @@ export default function TabsLayout({
                 </Text>
                 <Select
                   options={HeadingColor}
-                  value={settingfromDb.commanView.subHeading.color}
+                  value={ReduxCommanView.subHeading.color}
                   // onChange={(value) => dispatch({type: "UPDATE_PRODUCT_PRICE", payload: {color: value}})}
                   onChange={(value: string) =>
-                    dispatch({
-                      type: "UPDATE_COMMANVIEW",
-                      payload: { subHeading: { color: value } },
-                    })
+                    ReduxDispatch(updateNestedField({
+                      path: ['commanView', 'subHeading', 'color'],
+                      value: value
+                    }))
                   }
                 />
               </InlineStack>
@@ -1125,14 +1134,14 @@ export default function TabsLayout({
                     <Button
                       size="slim"
                       pressed={
-                        settingfromDb.commanView.subHeading.textAlign === "left"
+                        ReduxCommanView.subHeading.textAlign === "left"
                       }
                       // onClick={() => dispatch({type: "UPDATE_PRODUCT_CARD", payload: {textAlignType: "left"}})}
                       onClick={() =>
-                        dispatch({
-                          type: "UPDATE_COMMANVIEW",
-                          payload: { subHeading: { textAlign: "left" } },
-                        })
+                        ReduxDispatch(updateNestedField({
+                          path: ['commanView', 'subHeading', 'textAlign'],
+                          value: "left"
+                        }))
                       }
                     >
                       <Icon source={TextAlignLeftIcon} />
@@ -1143,15 +1152,14 @@ export default function TabsLayout({
                     <Button
                       size="slim"
                       pressed={
-                        settingfromDb.commanView.subHeading.textAlign ===
-                        "center"
+                        ReduxCommanView.subHeading.textAlign === "center"
                       }
                       // onClick={() => dispatch({type: "UPDATE_PRODUCT_CARD", payload: {textAlignType: "center"}})}
                       onClick={() =>
-                        dispatch({
-                          type: "UPDATE_COMMANVIEW",
-                          payload: { subHeading: { textAlign: "center" } },
-                        })
+                        ReduxDispatch(updateNestedField({
+                          path: ['commanView', 'subHeading', 'textAlign'],
+                          value: "center"
+                        }))
                       }
                     >
                       <Icon source={TextAlignCenterIcon} />
@@ -1162,15 +1170,14 @@ export default function TabsLayout({
                     <Button
                       size="slim"
                       pressed={
-                        settingfromDb.commanView.subHeading.textAlign ===
-                        "right"
+                        ReduxCommanView.subHeading.textAlign === "right"
                       }
                       // onClick={() =>  dispatch({type: "UPDATE_PRODUCT_CARD", payload: {textAlignType: "right"}})}
                       onClick={() =>
-                        dispatch({
-                          type: "UPDATE_COMMANVIEW",
-                          payload: { subHeading: { textAlign: "right" } },
-                        })
+                        ReduxDispatch(updateNestedField({
+                          path: ['commanView', 'subHeading', 'textAlign'],
+                          value: "right"
+                        }))
                       }
                     >
                       <Icon source={TextAlignRightIcon} />
@@ -1178,21 +1185,21 @@ export default function TabsLayout({
                   </Tooltip>
                 </ButtonGroup>
               </InlineGrid>
-            
+
               {developerMode && (
                 <TextField
-                tone="magic"
+                  tone="magic"
                   label={<Text variant="bodyMd" as="span" tone="critical" fontWeight="bold">SubHeading custom Class</Text>}
-                  value={settingfromDb.commanView.subHeading.customClass}
+                  value={ReduxCommanView.subHeading.customClass}
                   onChange={(value) =>
-                    dispatch({
-                      type: "UPDATE_COMMANVIEW",
-                      payload: { subHeading: { customClass: value } },
-                    })
+                    ReduxDispatch(updateNestedField({
+                      path: ['commanView', 'subHeading', 'customClass'],
+                      value: value
+                    }))
                   }
                   autoComplete="off"
                 />
-              )} 
+              )}
             </BlockStack>
           </Box>
         </Collapsible>

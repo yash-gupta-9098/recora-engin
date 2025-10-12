@@ -86,22 +86,30 @@ fontSize:1.2,
     color: "#333333ff",
     fontSize: 1,
     customClass:"",
+    colorScheme: "Scheme 1",
   },
   productPrice: {
     showPrice: true,
     color: "#333333ff",
+    colorScheme: "Scheme 1",
     fontSize: 1.2,
     comparePrice: {
       fontSize:1.2,
       showComparePrice: false,
-      color: "#666666ff"
+      color: "#666666ff",
+      colorScheme: "Scheme 1",
     },
     variantPrice:{
       fontSize:1.8,
       showVariantPrice: false,
-      color: "#6d5be2ff"
+      color: "#6d5be2ff",
+      colorScheme: "Scheme 1",
     },
+    singlePrice:{
+    applySinglePrice: false,
     singlePriceColor:"#333333ff",
+    singlePriceColorScheme: "Scheme 1",
+    },
     showZeroToFree: false,
     customClass:"",
   },
