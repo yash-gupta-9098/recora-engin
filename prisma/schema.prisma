@@ -40,7 +40,6 @@ model Shopsettings {
   accessToken String?
   scope       String?
   firstName   String?
-  settings    Json?
   home        Json?
   product     Json?
   collection  Json?
@@ -50,13 +49,6 @@ model Shopsettings {
   notFound       Json?
   search       Json?
   globalSettings Json?
-  homeWidgets       String[]
-  productWidgets    String[]
-  collectionWidgets String[]
-  cartWidgets       String[]
-  checkoutWidgets   String[]
-  otherWidgets      String[]
-  preferences Json?
   shopActive  Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

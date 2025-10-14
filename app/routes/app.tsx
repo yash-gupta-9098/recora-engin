@@ -8,16 +8,20 @@ import globalStyles from "../global.css?url";
 import { authenticate } from "../shopify.server";
 import { Provider as ReduxProvider } from "react-redux";
 import { store } from "app/redux/store/store";
+import { getShopSettings } from "db/getShopSettings";
 export const links = () => [{ rel: "stylesheet", href: polarisStyles } , { rel: "stylesheet", href: globalStyles }];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
+  const { session, admin } = await authenticate.admin(request);
+const shopSettings = await getShopSettings(session.shop);
 
-  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
+  return { apiKey: process.env.SHOPIFY_API_KEY || ""  , shopSettings };
 };
 
 export default function App() {
-  const { apiKey } = useLoaderData<typeof loader>();
+  const { apiKey , shopSettings} = useLoaderData<typeof loader>();
+
+  // console.log(shopSettings, "shopSettings");
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}> 

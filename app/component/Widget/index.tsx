@@ -230,7 +230,7 @@ export default function SinglePage({
                               <Text as="h3" fontWeight="bold">
                                 Condition
                               </Text>
-                              {widget.ruleSettings.conditions.length > 0 ? (
+                              {widget?.ruleSettings?.conditions?.length > 0 ? (
                                 <InlineStack blockAlign="center" gap="500">
                                   <Text as="p" variant="bodyMd">
                                     Products must match:
@@ -272,7 +272,7 @@ export default function SinglePage({
                                 </Text>
                               )}
 
-                              {widget.ruleSettings.conditions.map(
+                              {widget?.ruleSettings?.conditions?.map(
                                 (condition) => (
                                   <WidgetRuleCondition
                                     key={condition.id}
@@ -301,9 +301,10 @@ export default function SinglePage({
                                 <Button
                                   icon={PlusIcon}
                                   onClick={() => handleAddCondition(key)}
+                                  disabled={widget?.ruleSettings?.conditions ? false : true}
                                   // loading={fetcher?.state === 'submitting'}
                                 >
-                                  {`Add ${widget.ruleSettings.conditions.length > 0 ? "Another" : ""} Condition `}
+                                  {`Add ${widget?.ruleSettings?.conditions?.length > 0 ? "Another" : ""} Condition `}
                                 </Button>
                               </InlineStack>
                             </BlockStack>

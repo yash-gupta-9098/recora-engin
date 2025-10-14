@@ -1186,7 +1186,7 @@ export default function TabsLayout({
                 </ButtonGroup>
               </InlineGrid>
 
-              {developerMode && (
+            {developerMode && (
                 <TextField
                   tone="magic"
                   label={<Text variant="bodyMd" as="span" tone="critical" fontWeight="bold">SubHeading custom Class</Text>}

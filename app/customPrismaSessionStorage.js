@@ -194,37 +194,31 @@ export class CustomPrismaSessionStorage extends PrismaSessionStorage {
             no_of_products: 10
           }
         };
-        sessionData.homeWidgets = ['new_arrival','ai_based_recommendations','recently_viewed_products'];
-        sessionData.productWidgets = ['new_arrival','related_products','ai_based_recommendations','recently_viewed_products','fbt_products'];
-        sessionData.collectionWidgets = ['new_arrival','ai_based_recommendations','recently_viewed_products'];
-        sessionData.cartWidgets = ['new_arrival','related_products','ai_based_recommendations','recently_viewed_products'];
-        sessionData.checkoutWidgets = ['new_arrival','related_products','ai_based_recommendations','recently_viewed_products'];
-        sessionData.otherWidgets = [];
-        sessionData.preferences = {
-          dashboardLayout: 'grid',
-          itemsPerPage: 25,
-          timezone: 'UTC'
-        };
+        // sessionData.preferences = {
+        //   dashboardLayout: 'grid',
+        //   itemsPerPage: 25,
+        //   timezone: 'UTC'
+        // };
         // sessionData.shopActive = true;
         // sessionData.createdAt = new Date();
 
         console.log('Creating new session with defaults');
       } else {
         // Existing session - preserve custom fields
-        sessionData.settings = existingSession.settings;
+        // sessionData.settings = existingSession.settings;
         sessionData.home = existingSession.home;
         sessionData.product = existingSession.product;
         sessionData.collection = existingSession.collection;
         sessionData.cart = existingSession.cart;
         sessionData.checkout = existingSession.checkout;
         sessionData.other = existingSession.other;
-        sessionData.homeWidgets = existingSession.homeWidgets;
-        sessionData.productWidgets = existingSession.productWidgets;
-        sessionData.collectionWidgets = existingSession.collectionWidgets;
-        sessionData.cartWidgets = existingSession.cartWidgets;
-        sessionData.checkoutWidgets = existingSession.checkoutWidgets;
-        sessionData.otherWidgets = existingSession.otherWidgets;
-        sessionData.preferences = existingSession.preferences;
+        // sessionData.homeWidgets = existingSession.homeWidgets;
+        // sessionData.productWidgets = existingSession.productWidgets;
+        // sessionData.collectionWidgets = existingSession.collectionWidgets;
+        // sessionData.cartWidgets = existingSession.cartWidgets;
+        // sessionData.checkoutWidgets = existingSession.checkoutWidgets;
+        // sessionData.otherWidgets = existingSession.otherWidgets;
+        // sessionData.preferences = existingSession.preferences;
         // sessionData.shopActive = existingSession.shopActive;
         sessionData.createdAt = existingSession.createdAt;
         sessionData.firstName = existingSession.firstName || sessionData.firstName || 'rinkal';
