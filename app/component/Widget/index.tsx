@@ -6,8 +6,10 @@ import {
   BlockStack,
   Box,
   Button,
+  ButtonGroup,
   Card,
   Collapsible,
+  Divider,
   FormLayout,
   Icon,
   InlineGrid,
@@ -15,6 +17,7 @@ import {
   Key,
   Layout,
   Link,
+  OptionList,
   Page,
   Popover,
   RadioButton,
@@ -22,6 +25,7 @@ import {
   Text,
   TextContainer,
   TextField,
+  Tooltip,
 } from "@shopify/polaris";
 import { useCallback, useState } from "react";
 import {
@@ -29,8 +33,10 @@ import {
   CaretDownIcon,
   ChevronDownIcon,
   ExternalIcon,
+  MenuHorizontalIcon,
   OrderIcon,
   PlusIcon,
+  SettingsIcon,
 } from "@shopify/polaris-icons";
 import WidgetRuleCondition from "./WidgetRuleCondition";
 import WidgetSettings from "./widgetSettings";
@@ -53,6 +59,31 @@ export default function SinglePage({
   const [openWidget, setOpenWidget] = useState<string | null>(
     Object.keys(settings)[0],
   );
+
+  const [allPagesAddPopover, setAllPagesAddPopover] = useState<Record<string, boolean>>({});
+
+
+  const [selectedPagesName, setSelectedPagesName] = useState<any[]>([]);
+  // const toggleAllPagesAddPopover = useCallback(
+  //   () => setAllPagesAddPopover((allPagesAddPopover) => !allPagesAddPopover),
+  //   [],
+  // );
+  const toggleAllPagesAddPopover = (key: string) => {
+    setAllPagesAddPopover(prev => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+
+
+  const handleSelectedPagesChange = (key: string, selected: string[]) => {
+  setSelectedPagesName((prev) => ({
+    ...prev,
+    [key]: selected,
+  }));
+};
+
   const [showSlidekick, setShowSlidekick] = useState(false);
 
   const handleToggle = useCallback((key: string) => {
@@ -62,6 +93,17 @@ export default function SinglePage({
       // If no widget is open, close the settings panel
       if (newValue === null) {
         setShowSlidekick(false);
+      //   if( key) {
+      //   setSelectedPagesName((key: string)=>{
+      //     {Object.entries(settings as Record<string, WidgetState>).map(
+      //         ([key, widget]) => {
+      //           if(key === openWidget){
+      //             return widget?.backend?.availableOnpages ? widget?.backend?.availableOnpages[1] : []
+      //         }
+      //   })};
+
+      //   });
+      // }
       }
 
       return newValue;
@@ -225,52 +267,102 @@ export default function SinglePage({
                           }
                           gap="400"
                         >
-                          <Card>
+                          <Card >
                             <BlockStack gap="200">
-                              <Text as="h3" fontWeight="bold">
-                                Condition
-                              </Text>
-                              {widget?.ruleSettings?.conditions?.length > 0 ? (
-                                <InlineStack blockAlign="center" gap="500">
-                                  <Text as="p" variant="bodyMd">
-                                    Products must match:
+                              <InlineStack wrap={false} gap="500" align="space-between" blockAlign="start">
+                                <BlockStack gap="200">
+                                  <Text as="h3" fontWeight="bold">
+                                    Condition
                                   </Text>
-                                  <div>
-                                    <InlineStack gap="500">
-                                      <RadioButton
-                                        label="all conditions"
-                                        checked={
-                                          widget.ruleSettings.priceMatch ===
-                                          "all"
-                                        }
-                                        id={`all-${key}`}
-                                        name={`matchWidgetsAllRule-${key}`}
-                                        onChange={() =>
-                                          handlePriceMatchChange(key, "all")
-                                        }
-                                      />
-                                      <RadioButton
-                                        label="any condition"
-                                        id={`any-${key}`}
-                                        name={`matchWidgetsAllRule-${key}`}
-                                        checked={
-                                          widget.ruleSettings.priceMatch ===
-                                          "any"
-                                        }
-                                        onChange={() =>
-                                          handlePriceMatchChange(key, "any")
-                                        }
-                                      />
+                                  {widget?.ruleSettings?.conditions?.length > 0 ? (
+                                    <InlineStack blockAlign="center" gap="500">
+                                      <Text as="p" variant="bodyMd">
+                                        Products must match:
+                                      </Text>
+                                      <div>
+                                        <InlineStack gap="500">
+                                          <RadioButton
+                                            label="all conditions"
+                                            checked={
+                                              widget.ruleSettings.priceMatch ===
+                                              "all"
+                                            }
+                                            id={`all-${key}`}
+                                            name={`matchWidgetsAllRule-${key}`}
+                                            onChange={() =>
+                                              handlePriceMatchChange(key, "all")
+                                            }
+                                          />
+                                          <RadioButton
+                                            label="any condition"
+                                            id={`any-${key}`}
+                                            name={`matchWidgetsAllRule-${key}`}
+                                            checked={
+                                              widget.ruleSettings.priceMatch ===
+                                              "any"
+                                            }
+                                            onChange={() =>
+                                              handlePriceMatchChange(key, "any")
+                                            }
+                                          />
+                                        </InlineStack>
+                                      </div>
                                     </InlineStack>
-                                  </div>
-                                </InlineStack>
-                              ) : (
-                                <Text as="p">
-                                  You can Add multiple conditions as per your
-                                  preference to customize which products are
-                                  displayed in this section.
-                                </Text>
-                              )}
+                                  ) : (
+                                    <Text as="p">
+                                      You can Add multiple conditions as per your
+                                      preference to customize which products are
+                                      displayed in this section.
+                                    </Text>
+
+                                  )}
+                                </BlockStack>
+                                
+                                  <InlineStack gap="200" wrap={false} align="center">
+                                    <Popover
+                                      active={!!allPagesAddPopover[key]}
+                                      autofocusTarget="none"
+                                      activator={<Tooltip content="More" dismissOnMouseOut><Button
+                                        icon={MenuHorizontalIcon}
+                                        onClick={() => toggleAllPagesAddPopover(key)}
+                                        // loading={fetcher?.state === 'submitting'}
+                                        variant="plain"
+                                      >
+                                      </Button></Tooltip>}
+                                      onClose={() => toggleAllPagesAddPopover(key)}
+                                      sectioned
+                                    >
+                                      {/* <FormLayout> */}
+                                        <BlockStack gap="100">
+                                        <OptionList
+                                          title="Condition apply for selected pages"
+                                          onChange={(selected) => handleSelectedPagesChange (key , selected)}
+                                          options={widget?.backend?.availableOnpages?.[0] || []}
+                                          selected={selectedPagesName[key] || []}
+                                          allowMultiple
+                                        />
+                                        <Divider /> 
+                                       <Box paddingInline="400" paddingBlock="200">                                        
+                                        <ButtonGroup>
+                                          <Button variant="plain"disabled={(selectedPagesName[key]?.length || 0) < 1}
+      onClick={() => handleSelectedPagesChange(key, [])}>Clear</Button>
+                                          <Button variant="primary" disabled={(selectedPagesName[key]?.length || 0) < 1} >Apply</Button>
+                                        </ButtonGroup>
+                                        </Box>
+                                        </BlockStack>
+                                      {/* </FormLayout> */}
+                                    </Popover>
+                                    
+                                    <Tooltip content="Custom Widget Settings" dismissOnMouseOut><Button
+                                        icon={SettingsIcon}
+                                        onClick={() => setShowSlidekick(true)}
+                                        // loading={fetcher?.state === 'submitting'}
+                                        variant="plain"
+                                      >
+                                      </Button></Tooltip>
+                                  </InlineStack>
+                                
+                              </InlineStack>
 
                               {widget?.ruleSettings?.conditions?.map(
                                 (condition) => (
@@ -302,7 +394,7 @@ export default function SinglePage({
                                   icon={PlusIcon}
                                   onClick={() => handleAddCondition(key)}
                                   disabled={widget?.ruleSettings?.conditions ? false : true}
-                                  // loading={fetcher?.state === 'submitting'}
+                                // loading={fetcher?.state === 'submitting'}
                                 >
                                   {`Add ${widget?.ruleSettings?.conditions?.length > 0 ? "Another" : ""} Condition `}
                                 </Button>

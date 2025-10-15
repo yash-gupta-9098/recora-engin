@@ -43,6 +43,7 @@ export type ConditionFieldKey = "field" | "operator" | "value";
   backend: {
     widgetName: string;
     widgetDescription: string;
+    availableOnpages?: Array<any>;
   };
   ruleSettings: RuleSettings;
   widgetsSettings: WidgetsSettings;

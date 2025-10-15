@@ -61,6 +61,7 @@ export interface WidgetConfig {
   backend?: {
     widgetName?: string;
     widgetDescription?: string;
+    availableOnpages?: any[];
     // [key: string]: any;
   };
   ruleSettings?: RuleSettings; // MAY be empty or populated
@@ -68,6 +69,7 @@ export interface WidgetConfig {
   isActive?: boolean;
   createdAt?: ISODateString;
   updatedAt?: ISODateString;
+   // e.g. [{home: "home"} , {collection: "collection"}, {product: "product"}, {search: "search"}, {cart: "cart"}, {blog: "blog"}, {article: "article"}, {page: "page"}]
   collectionId?: string; // optional associated collection ID
   [key: string]: any; // allow extra fields
 }
