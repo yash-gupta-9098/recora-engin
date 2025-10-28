@@ -25,13 +25,7 @@ export async function saveShopSettings(shop: string, completeSettings: any) {
           cart: otherSettings.cart,
           checkout: otherSettings.checkout,
           other: otherSettings.other,
-          // homeWidgets: otherSettings.homeWidgets,
-          // productWidgets: otherSettings.productWidgets,
-          // collectionWidgets: otherSettings.collectionWidgets,
-          // cartWidgets: otherSettings.cartWidgets,
-          // checkoutWidgets: otherSettings.checkoutWidgets,
-          // otherWidgets: otherSettings.otherWidgets,
-          // preferences: otherSettings.preferences
+          
         }
       });
     } 
@@ -43,3 +37,6 @@ export async function saveShopSettings(shop: string, completeSettings: any) {
     throw error;
   }
 }
+
+
+

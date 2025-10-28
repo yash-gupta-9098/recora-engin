@@ -37,18 +37,32 @@ export interface RuleSettings {
 }
 
 
+export interface pageBlockSettings {
+  pageActive?: boolean;
+  icon?: boolean;
+  [k: string]: any;
+}
+
 
 export interface WidgetsSettings {
-  heading?: string;
-  subHeading?: string;
-  viewType?: string;
-  layoutValue?: string; // e.g. 'Layout_1' etc.
-  viewCardDesign?: string;
-  totalProduct?: number;
-  rangeDeskProValue?: number;
-  rangeTbtProValue?: number;
-  rangeMbProValue?: number;
+  heading: string;
+  subHeading: string;
+  viewType: string;
+  layoutValue: string; // e.g. 'Layout_1' etc.
+  viewCardDesign: string;
+  totalProduct: number;
+  rangeDeskProValue: number;
+  rangeTbtProValue: number;
+  rangeMbProValue: number;
 //   [key: string]: any; // additional UI settings allowed
+}
+
+
+export interface WidgetBackend {
+  widgetName?: string;
+  widgetDescription?: string;
+  availableOnpages?: [{ value: string; label: string }[], string[]];
+  [k: string]: any;
 }
 
 
@@ -58,18 +72,19 @@ export interface WidgetConfig {
   title: string;
   active: boolean;
   no_of_products?: number;
-  backend?: {
-    widgetName?: string;
-    widgetDescription?: string;
-    availableOnpages?: any[];
-    // [key: string]: any;
-  };
+  backend?: WidgetBackend;
   ruleSettings?: RuleSettings; // MAY be empty or populated
-  widgetsSettings?: WidgetsSettings;
+  widgetsSettings: WidgetsSettings;
   isActive?: boolean;
   createdAt?: ISODateString;
   updatedAt?: ISODateString;
    // e.g. [{home: "home"} , {collection: "collection"}, {product: "product"}, {search: "search"}, {cart: "cart"}, {blog: "blog"}, {article: "article"}, {page: "page"}]
   collectionId?: string; // optional associated collection ID
   [key: string]: any; // allow extra fields
+}
+
+
+export interface WidgetsPage {
+  pageBlockSettings?: pageBlockSettings;
+  widgets: Record<string, WidgetConfig>;
 }

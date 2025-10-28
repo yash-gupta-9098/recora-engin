@@ -36,7 +36,7 @@ export function DesktopPreview({
 
 
   const rootCSS = {
-    "--rcr_card_textAlignType": ReduxProductCard.textAlignType || payload.productCard.textAlignType,
+    "--rcr_card_textAlignType": ReduxProductCard.textAlignType || payload?.productCard?.textAlignType,
     "--rcr_product_per_Dekview": ReduxCommanView.desktop.rangeProValue || payload.commanView.desktop.rangeProValue,
     "--rcr_product_per_Mobview": ReduxCommanView.mobile.rangeProValue || payload.commanView.mobile.rangeProValue,
     "--rcr_product_per_Tabview": ReduxCommanView.tablet.rangeProValue || payload.commanView.tablet.rangeProValue,

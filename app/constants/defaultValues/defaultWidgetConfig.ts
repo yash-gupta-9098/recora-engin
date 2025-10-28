@@ -5,11 +5,13 @@ const now = () => new Date().toISOString();
 
 const avaibleAllPageList = [
   { value: 'home', label: 'Home' },
+  { value: 'product', label: 'Product' },
+  { value: 'cart', label: 'Cart' },
   { value: 'collection', label: 'Collection' }, 
   { value: 'search', label: 'Search' },
   { value: 'blog', label: 'Blog' },
-  { value: 'article', label: 'Article' },
-  { value: 'page', label: 'Page' }
+  { value: 'other', label: 'other' },
+  { value: 'notFound', label: '404' }
 ]
 
 const avaibleIdBasedPageList = [

@@ -38,6 +38,7 @@ model Shopsettings {
   id              String  @unique
   shop        String   @unique
   accessToken String?
+  storefrontaccessToken String?
   scope       String?
   firstName   String?
   home        Json?

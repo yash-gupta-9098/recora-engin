@@ -9,6 +9,7 @@ import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prism
 import prisma from "./db.server";
 import { aiBasedRecommendationsConfig, manualProductsConfig, newArrivalsConfig, recentlyViewedProductsConfig, relatedProductsConfig, topSellingProductsConfig, trendingProductsConfig } from "./constants/defaultValues/defaultWidgetConfig";
 import { defaultGlobalSettings } from "./constants/defaultValues/defaultGlobalSettings";
+import { Prisma } from "@prisma/client";
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
@@ -20,7 +21,7 @@ const shopify = shopifyApp({
   sessionStorage: new PrismaSessionStorage(prisma),
   hooks: {
     afterAuth: async ({ session }: any) => {
-      console.log("afterAuth", session)
+      // console.log("afterAuth", session)
       // Update the session record in the database with your default settings
       await insertDefaultShopData(session);
     },
@@ -36,9 +37,9 @@ const shopify = shopifyApp({
 });
 
 
+// insert default shop data
 async function insertDefaultShopData(session: Session) {
   try {
-    console.log('session in insertDefaultShopData ', session);
     // Check if shop data already exists
     const existingShop = await prisma.shopsettings.findUnique({
       where: { shop: session.shop }
@@ -49,10 +50,11 @@ async function insertDefaultShopData(session: Session) {
       shop: session.shop,
       accessToken: session.accessToken,
       scope: session.scope,
+      storefrontaccessToken: await getstorefronttoken(session),
       firstName: 'rinkal verma',
-      globalSettings: { defaultGlobalSettings },
+      globalSettings: defaultGlobalSettings as unknown as Prisma.JsonObject,
       home: {
-        homeSettings: { pageActive: true, icon: true },
+        pageBlockSettings: { pageActive: true, icon: true },
         widgets: {
           topSelling: topSellingProductsConfig,
           trending: trendingProductsConfig,
@@ -62,7 +64,7 @@ async function insertDefaultShopData(session: Session) {
         }
       },
       product: {
-        productSettings: { pageActive: true, icon: true },
+        pageBlockSettings: { pageActive: true, icon: true },
         widgets: {
           related: relatedProductsConfig,
           topSelling: topSellingProductsConfig,
@@ -74,7 +76,7 @@ async function insertDefaultShopData(session: Session) {
         }
       },
       collection: {
-        collectionSettings: { pageActive: true, icon: true },
+        pageBlockSettings: { pageActive: true, icon: true },
         widgets: {
           topSelling: topSellingProductsConfig,
           trending: trendingProductsConfig,
@@ -84,7 +86,7 @@ async function insertDefaultShopData(session: Session) {
         }
       },
       cart: {
-        cartSettings: { pageActive: true, icon: true },
+        pageBlockSettings: { pageActive: true, icon: true },
         widgets: {
           related: relatedProductsConfig,
           topSelling: topSellingProductsConfig,
@@ -96,7 +98,7 @@ async function insertDefaultShopData(session: Session) {
         }
       },
       other: {
-        otherSettings: { pageActive: true, icon: true },
+        pageBlockSettings: { pageActive: true, icon: true },
         widgets: {
           topSelling: topSellingProductsConfig,
           trending: trendingProductsConfig,
@@ -106,7 +108,7 @@ async function insertDefaultShopData(session: Session) {
         }
       },
       search: {
-        searchSettings: { pageActive: true, icon: true },
+        pageBlockSettings: { pageActive: true, icon: true },
         widgets: {
           topSelling: topSellingProductsConfig,
           trending: trendingProductsConfig,
@@ -116,7 +118,7 @@ async function insertDefaultShopData(session: Session) {
         }
       },
       notFound: {
-        notFoundSettings: { pageActive: true, icon: true },
+        pageBlockSettings: { pageActive: true, icon: true },
         widgets: {
           topSelling: topSellingProductsConfig,
           trending: trendingProductsConfig,
@@ -124,12 +126,7 @@ async function insertDefaultShopData(session: Session) {
           newarival: newArrivalsConfig,
           recentlyViewed: recentlyViewedProductsConfig,
         }
-      },
-      // preferences: {
-      //   dashboardLayout: 'grid',
-      //   itemsPerPage: 25,
-      //   timezone: 'UTC'
-      // },
+      },    
       shopActive: true
     };
 
@@ -157,6 +154,46 @@ async function insertDefaultShopData(session: Session) {
     // Don't throw error to avoid breaking session creation
   }
 }
+
+
+
+// get storeFront access token
+async function getstorefronttoken(session: Session) {
+  let shop = session.shop;
+  let shopToken = session.accessToken;
+  const mutation = `
+        mutation {
+          storefrontAccessTokenCreate(input: {
+            title: "Recora Storefront Token"
+          }) {
+            storefrontAccessToken {
+              accessToken
+              title
+            }
+            userErrors {
+              field
+              message
+            }
+          }
+        }
+      `;
+  let response = await fetch(`https://${shop}/admin/api/2025-10/graphql.json`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Shopify-Access-Token': shopToken
+    },
+    body: JSON.stringify({
+      query: mutation
+    })
+  });
+  const data = await response.json();
+  let storefronttoken = data.data.storefrontAccessTokenCreate.storefrontAccessToken.accessToken;
+  return storefronttoken;
+}
+
+
+
 
 export default shopify;
 export const apiVersion = ApiVersion.January25;

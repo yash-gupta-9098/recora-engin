@@ -5,52 +5,53 @@ import { getShopSettings } from "db/getShopSettings";
 import { useReducer } from "react";
 import { SaveBar, useAppBridge } from "@shopify/app-bridge-react";
 import SinglePage from "../component/Widget";
+import { WidgetConfig, WidgetsPage, WidgetsSettings } from "app/constants/interfaces/widgetConfigInterface";
 
 // Database types
 export type RuleLogic = "all" | "any";
 
 
-interface Condition {
-  id: string;
-  field: string; // e.g. "product_title"
-  operator: string; // e.g. "contains"
-  value: string;
-}
+// interface Condition {
+//   id: string;
+//   field: string; // e.g. "product_title"
+//   operator: string; // e.g. "contains"
+//   value: string;
+// }
 
-interface RuleSettings {
-  priceMatch: RuleLogic;
-  conditions: Condition[];
-}
+// interface RuleSettings {
+//   priceMatch: RuleLogic;
+//   conditions: Condition[];
+// }
 
-interface WidgetsSettings {
-  heading: string;
-  subHeading: string;
-  viewType: string;
-  layoutValue: string;
-  viewCardDesign: string;
-  totalProduct: number;
-  rangeDeskProValue: number;
-  rangeTbtProValue: number;
-  rangeMbProValue: number;
-}
+// interface WidgetsSettings {
+//   heading: string;
+//   subHeading: string;
+//   viewType: string;
+//   layoutValue: string;
+//   viewCardDesign: string;
+//   totalProduct: number;
+//   rangeDeskProValue: number;
+//   rangeTbtProValue: number;
+//   rangeMbProValue: number;
+// }
 
 export type ConditionFieldKey = "field" | "operator" | "value";
 
- export interface WidgetState {
-  title: string;
-  active: boolean;
-  no_of_products: number;
-  backend: {
-    widgetName: string;
-    widgetDescription: string;
-    availableOnpages?: Array<any>;
-  };
-  ruleSettings: RuleSettings;
-  widgetsSettings: WidgetsSettings;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+//  export interface WidgetState {
+//   title: string;
+//   active: boolean;
+//   no_of_products: number;
+//   backend: {
+//     widgetName: string;
+//     widgetDescription: string;
+//     availableOnpages?: Array<any>;
+//   };
+//   ruleSettings: RuleSettings;
+//   widgetsSettings: WidgetsSettings;
+//   isActive: boolean;
+//   createdAt: string;
+//   updatedAt: string;
+// }
 
 export interface SetLogicAction {
   type: "SET_LOGIC";
@@ -85,8 +86,8 @@ export interface DeleteConditionAction {
 // Simple static data functions
 const getAllWidgetsData = {
   getAllWidgets: async (
-    staticWidgetData: Record<string, WidgetState>,
-  ): Promise<WidgetState[]> => {
+    staticWidgetData: Record<string, WidgetsPage>,
+  ): Promise<WidgetsPage[]> => {
     if (!staticWidgetData || typeof staticWidgetData !== "object") return [];
     // Create a shallow copy so the original object isn't mutated
     const filteredData = { ...staticWidgetData };
@@ -104,14 +105,14 @@ export const loader: LoaderFunction = async ({ params, request }) => {
     const shop_Settings = await getShopSettings(session.shop);
 
     const single_Page_Data =
-      shop_Settings[widgetSlug as keyof typeof shop_Settings];
+      shop_Settings[widgetSlug as keyof typeof shop_Settings] ;
 
     // Convert to the format expected by the component
     const widgets = await getAllWidgetsData.getAllWidgets(
       single_Page_Data?.widgets,
     );
     //
-    const widgetSettings: Record<string, WidgetState> = {};
+    const widgetSettings: Record<string, WidgetsPage> = {};
     widgets.forEach((widget) => {
       widgetSettings[widget.title] = widget;
     });

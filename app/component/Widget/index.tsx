@@ -40,12 +40,13 @@ import {
 } from "@shopify/polaris-icons";
 import WidgetRuleCondition from "./WidgetRuleCondition";
 import WidgetSettings from "./widgetSettings";
-import { WidgetState } from "app/routes/app.features.$widgetSlug";
+// import { WidgetState } from "app/routes/app.features.$widgetSlug";
 import { Navigate, useNavigate } from "@remix-run/react";
+import { WidgetConfig } from "app/constants/interfaces/widgetConfigInterface";
 
 interface WidgetSettingProps {
   pageName: string;
-  settings: Record<string, WidgetState>;
+  settings: Record<string, WidgetConfig>;
   dispatch: React.Dispatch<any>;
   children?: React.ReactNode;
 }
@@ -63,7 +64,7 @@ export default function SinglePage({
   const [allPagesAddPopover, setAllPagesAddPopover] = useState<Record<string, boolean>>({});
 
 
-  const [selectedPagesName, setSelectedPagesName] = useState<any[]>([]);
+  const [selectedPagesName, setSelectedPagesName] = useState<Record<string, string[]>>({});
   // const toggleAllPagesAddPopover = useCallback(
   //   () => setAllPagesAddPopover((allPagesAddPopover) => !allPagesAddPopover),
   //   [],
@@ -215,7 +216,7 @@ export default function SinglePage({
           gap="200"
         >
           <BlockStack gap={"500"}>
-            {Object.entries(settings as Record<string, WidgetState>).map(
+            {Object.entries(settings as Record<string, WidgetConfig>).map(
               ([key, widget]) => (
                 <>
                   <Card key={key}>
@@ -227,10 +228,10 @@ export default function SinglePage({
                       >
                         <div>
                           <Text as="h2" variant="headingMd" fontWeight="bold">
-                            {widget.backend.widgetName}
+                            {widget?.backend?.widgetName}
                           </Text>
                           <Text as="p" variant="bodyMd">
-                            {widget.backend.widgetDescription}
+                            {widget?.backend?.widgetDescription}
                           </Text>
                         </div>
                         <div>
@@ -284,7 +285,7 @@ export default function SinglePage({
                                           <RadioButton
                                             label="all conditions"
                                             checked={
-                                              widget.ruleSettings.priceMatch ===
+                                              widget?.ruleSettings?.priceMatch ===
                                               "all"
                                             }
                                             id={`all-${key}`}
@@ -298,7 +299,7 @@ export default function SinglePage({
                                             id={`any-${key}`}
                                             name={`matchWidgetsAllRule-${key}`}
                                             checked={
-                                              widget.ruleSettings.priceMatch ===
+                                              widget?.ruleSettings?.priceMatch ===
                                               "any"
                                             }
                                             onChange={() =>
@@ -365,7 +366,7 @@ export default function SinglePage({
                               </InlineStack>
 
                               {widget?.ruleSettings?.conditions?.map(
-                                (condition) => (
+                                (condition: any) => (
                                   <WidgetRuleCondition
                                     key={condition.id}
                                     condition={{
@@ -497,7 +498,7 @@ export default function SinglePage({
                           <Box padding="100" borderColor="border-magic">
                             <WidgetSettings
                               setShowSlidekick={setShowSlidekick}
-                              widgetName={widget.backend.widgetName}
+                              widgetName={widget?.backend?.widgetName}
                               widgetsSettings={widget.widgetsSettings}
                               widgetKey={key}
                               dispatch={dispatch}
@@ -515,7 +516,7 @@ export default function SinglePage({
           {!isMobile && showSlidekick && openWidget && (
             <WidgetSettings
               setShowSlidekick={setShowSlidekick}
-              widgetName={settings[openWidget]?.backend.widgetName || "Widget"}
+              widgetName={settings[openWidget]?.backend?.widgetName || "Widget"}
               widgetsSettings={settings[openWidget]?.widgetsSettings}
               widgetKey={openWidget || ""}
               dispatch={dispatch}
