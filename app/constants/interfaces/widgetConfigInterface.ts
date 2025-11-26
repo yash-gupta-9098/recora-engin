@@ -31,9 +31,16 @@ export type ISODateString = string;
 
 
 
+export interface Condition {
+  id: string;
+  field: string; // e.g. "product_title"
+  operator: string; // e.g. "contains"
+  value: string;
+}
+
 export interface RuleSettings {
   priceMatch?: "all" | "any"; // all = AND, any = OR
-  conditions?: any; // array of conditions
+  conditions?: Condition[]; // array of conditions
 }
 
 
@@ -67,6 +74,19 @@ export interface WidgetBackend {
 
 
 
+import { CommanView, ProductTitle, ProductPrice, ProductImage, ProductCard } from './globalSettingsInterface';
+
+// Widget-specific settings (excluding colorScheme which is always global)
+export interface WidgetSpecificSettings {
+  commanView?: Partial<CommanView>;
+  productTitle?: Partial<ProductTitle>;
+  productPrice?: Partial<ProductPrice>;
+  productImage?: Partial<ProductImage>;
+  productCard?: Partial<ProductCard>;
+  customCSS?: string;
+  useGlobalSettings?: boolean; // If false, use widget-specific settings; if true/undefined, use global
+}
+
 export interface WidgetConfig {
 //   key?: string; // optional programmatic key like 'newArrivals'
   title: string;
@@ -75,6 +95,7 @@ export interface WidgetConfig {
   backend?: WidgetBackend;
   ruleSettings?: RuleSettings; // MAY be empty or populated
   widgetsSettings: WidgetsSettings;
+  widgetSettings?: WidgetSpecificSettings; // Widget-specific overrides for global settings
   isActive?: boolean;
   createdAt?: ISODateString;
   updatedAt?: ISODateString;
@@ -88,3 +109,4 @@ export interface WidgetsPage {
   pageBlockSettings?: pageBlockSettings;
   widgets: Record<string, WidgetConfig>;
 }
+

@@ -40,9 +40,9 @@ import {
 } from "@shopify/polaris-icons";
 import WidgetRuleCondition from "./WidgetRuleCondition";
 import WidgetSettings from "./widgetSettings";
-// import { WidgetState } from "app/routes/app.features.$widgetSlug";
 import { Navigate, useNavigate } from "@remix-run/react";
 import { WidgetConfig } from "app/constants/interfaces/widgetConfigInterface";
+import { widgetActions } from "app/redux/slices/pageWidgetConfigSlice";
 
 interface WidgetSettingProps {
   pageName: string;
@@ -113,48 +113,20 @@ export default function SinglePage({
 
   const handlePriceMatchChange = useCallback(
     (widgetKey: string, newValue: "all" | "any") => {
-      // Update local state immediately for UI responsiveness
-      dispatch({
-        type: "SET_LOGIC",
-        payload: { widgetId: widgetKey, priceMatch: newValue },
-      });
-
-      // Send to database
-      // if (fetcher) {
-      //   const formData = new FormData();
-      //   formData.append('action', 'updatePriceMatch');
-      //   formData.append('widgetId', key);
-      //   formData.append('priceMatch', newValue);
-      //   fetcher.submit(formData, { method: 'post' });
-      // }
+      dispatch(widgetActions.setLogic({ widgetId: widgetKey, priceMatch: newValue }));
     },
-    [],
+    [dispatch],
   );
 
   const handleAddCondition = useCallback((widgetKey: string) => {
-    // const newCondition: WidgetRuleConditionData = {
-    //   id: `temp_${Date.now()}`, // Temporary ID for optimistic update
-    //   field: 'product_title',
-    //   operator: 'contains',
-    //   value: '',
-    //   widgetId: widgetKey
-    // };
-
-    // Optimistic update
-    dispatch({
-      type: "ADD_CONDITION",
-      payload: { widgetId: widgetKey },
-    });
-  }, []);
+    dispatch(widgetActions.addCondition({ widgetId: widgetKey }));
+  }, [dispatch]);
 
   const handleRemoveCondition = useCallback(
     (widgetKey: string, conditionId: string) => {
-      dispatch({
-        type: "DELETE_CONDITION",
-        payload: { widgetId: widgetKey, conditionId },
-      });
+      dispatch(widgetActions.deleteCondition({ widgetId: widgetKey, conditionId }));
     },
-    [],
+    [dispatch],
   );
 
   const handleConditionChange = useCallback(
@@ -164,12 +136,9 @@ export default function SinglePage({
       field: "field" | "operator" | "value",
       value: string,
     ) => {
-      dispatch({
-        type: "UPDATE_CONDITION",
-        payload: { widgetId: widgetKey, conditionId, field, value },
-      });
+      dispatch(widgetActions.updateCondition({ widgetId: widgetKey, conditionId, field, value }));
     },
-    [],
+    [dispatch],
   );
 
   function capitalize(text: string): string {
@@ -354,13 +323,14 @@ export default function SinglePage({
                                       {/* </FormLayout> */}
                                     </Popover>
                                     
-                                    <Tooltip content="Custom Widget Settings" dismissOnMouseOut><Button
+                                    <Tooltip content="Custom Widget Settings" dismissOnMouseOut>
+                                      <Button
                                         icon={SettingsIcon}
-                                        onClick={() => setShowSlidekick(true)}
-                                        // loading={fetcher?.state === 'submitting'}
+                                        url={`/app/features/${pageName}/settings?widgetId=${key}`}
                                         variant="plain"
                                       >
-                                      </Button></Tooltip>
+                                      </Button>
+                                    </Tooltip>
                                   </InlineStack>
                                 
                               </InlineStack>
@@ -420,18 +390,13 @@ export default function SinglePage({
                                   }
                                   value={widget?.widgetsSettings?.heading}
                                   onChange={(value) =>
-                                    dispatch({
-                                      type: "UPDATE_SINGLE_WIDGET_SETTING",
-                                      payload: {
-                                        widgetId: key, // jaise "New Arrivals"
-                                        settings: {
-                                          widgetsSettings: {
-                                            ...widget.widgetsSettings,
-                                            heading: value,
-                                          },
-                                        },
+                                    dispatch(widgetActions.updateSingleWidgetSetting({
+                                      widgetId: key,
+                                      settings: {
+                                        ...widget.widgetsSettings,
+                                        heading: value,
                                       },
-                                    })
+                                    }))
                                   }
                                   placeholder={widget?.widgetsSettings?.heading}
                                   autoComplete="off"
@@ -450,18 +415,13 @@ export default function SinglePage({
                                   }
                                   value={widget?.widgetsSettings?.subHeading}
                                   onChange={(value) => {
-                                    dispatch({
-                                      type: "UPDATE_SINGLE_WIDGET_SETTING",
-                                      payload: {
-                                        widgetId: key, // jaise "New Arrivals"
-                                        settings: {
-                                          widgetsSettings: {
-                                            ...widget.widgetsSettings,
-                                            subHeading: value,
-                                          },
-                                        },
+                                    dispatch(widgetActions.updateSingleWidgetSetting({
+                                      widgetId: key,
+                                      settings: {
+                                        ...widget.widgetsSettings,
+                                        subHeading: value,
                                       },
-                                    });
+                                    }));
                                   }}
                                   placeholder={
                                     widget?.widgetsSettings?.subHeading

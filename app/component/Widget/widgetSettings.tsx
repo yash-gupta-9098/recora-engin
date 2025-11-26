@@ -2,6 +2,7 @@ import React from "react";
 import { ActionList, BlockStack, Box, Button, ButtonGroup, Card, Divider, Icon, InlineGrid, InlineStack, Popover, RangeSlider, Text, TextField, Tooltip } from "@shopify/polaris";
 import { useCallback, useState, useEffect } from "react";
 import { DeleteIcon, ExternalIcon, LayoutBuyButtonHorizontalIcon, LayoutBuyButtonVerticalIcon, LayoutPopupIcon, PlusIcon, XIcon } from '@shopify/polaris-icons';
+import { widgetActions } from "app/redux/slices/pageWidgetConfigSlice";
 interface WidgetSettingsProps {
   setShowSlidekick: (show: boolean) => void;
   widgetName?: string;
@@ -98,18 +99,13 @@ export default function WidgetSettings({ setShowSlidekick, widgetName = "Widget"
 
 
 
-dispatch({
-  type: "UPDATE_SINGLE_WIDGET_SETTING",
-  payload: {
-    widgetId: widgetKey, // jaise "New Arrivals"
-    settings: {
-      widgetsSettings: {
-        ...widgetsSettings,
-        [key]: value
-      }
-    }
+dispatch(widgetActions.updateSingleWidgetSetting({
+  widgetId: widgetKey,
+  settings: {
+    ...widgetsSettings,
+    [key]: value
   }
-});
+}));
     
 
  
