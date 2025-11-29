@@ -43,6 +43,7 @@ import WidgetSettings from "./widgetSettings";
 import { Navigate, useNavigate } from "@remix-run/react";
 import { WidgetConfig } from "app/constants/interfaces/widgetConfigInterface";
 import { widgetActions } from "app/redux/slices/pageWidgetConfigSlice";
+import RelatedProductSelection from "./RelatedProduct/RelatedProductSelection";
 
 interface WidgetSettingProps {
   pageName: string;
@@ -239,6 +240,21 @@ export default function SinglePage({
                         >
                           <Card >
                             <BlockStack gap="200">
+                            
+                                {/* <Card background="bg-fill-transparent" roundedAbove="md" > */}
+                                <BlockStack gap="200" >
+                                    <Text as="h3" fontWeight="bold">
+                                      Widget Settings
+                                    </Text>
+                                    <RelatedProductSelection />
+                                    <Divider borderWidth="0"/>
+                                </BlockStack>                              
+                              {/* </Card> */}
+
+                            <Divider />
+
+                            
+
                               <InlineStack wrap={false} gap="500" align="space-between" blockAlign="start">
                                 <BlockStack gap="200">
                                   <Text as="h3" fontWeight="bold">
@@ -321,8 +337,7 @@ export default function SinglePage({
                                         </Box>
                                         </BlockStack>
                                       {/* </FormLayout> */}
-                                    </Popover>
-                                    
+                                    </Popover>                                    
                                     <Tooltip content="Custom Widget Settings" dismissOnMouseOut>
                                       <Button
                                         icon={SettingsIcon}
@@ -330,7 +345,7 @@ export default function SinglePage({
                                         variant="plain"
                                       >
                                       </Button>
-                                    </Tooltip>
+                                </Tooltip>
                                   </InlineStack>
                                 
                               </InlineStack>

@@ -217,7 +217,6 @@ export default function ProductDataSearchModal({
           onAction: handleCancel,
         },
       ]}
-      size="large"
     >
       <Modal.Section>
         <BlockStack >

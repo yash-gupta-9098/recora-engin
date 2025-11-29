@@ -55,7 +55,7 @@ const globalSettingsSlice = createSlice({
     // Update an entire top-level section (partial merge)
     updateSection(state, action: PayloadAction<PartialSectionPayload<SectionKey>>) {
       const { section, payload } = action.payload;
-      // @ts-expect-error - dynamic key merge
+      
       state[section] = { ...(state[section] as any), ...(payload as any) };
     },
 
