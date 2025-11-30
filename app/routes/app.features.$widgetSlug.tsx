@@ -1,7 +1,8 @@
 import { json, LoaderFunction, ActionFunction } from "@remix-run/node";
-import { useLoaderData} from "@remix-run/react";
+import { useLoaderData, useSubmit, useActionData } from "@remix-run/react";
 import { authenticate } from "app/shopify.server";
 import { getShopSettings } from "db/getShopSettings";
+import { updateShopSettings } from "db/updateShopSettings";
 import { useEffect } from "react";
 import { SaveBar, useAppBridge } from "@shopify/app-bridge-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -35,16 +36,42 @@ export const loader: LoaderFunction = async ({ params, request }) => {
   }
 };
 
-export const action: ActionFunction = async ({ request }) => {
-  const formData = await request.formData();
-  //*R@-pending*  form  submit karwana h kuch chnage  karna  ho to  vo dekhna h
+export const action: ActionFunction = async ({ request, params }) => {
+  const { widgetSlug } = params;
+
+  try {
+    const formData = await request.formData();
+    const widgetsData = formData.get("widgetsData");
+
+    if (!widgetsData || !widgetSlug) {
+      return json({ success: false, error: "Missing data" }, { status: 400 });
+    }
+
+    // Parse the widgets data from JSON
+    const parsedWidgetsData = JSON.parse(widgetsData as string);
+
+    // Update shop settings in database
+    // Structure: { [widgetSlug]: { widgets: {...} } }
+    const updateData = {
+      [widgetSlug]: parsedWidgetsData
+    };
+
+    await updateShopSettings(request, updateData);
+
+    return json({ success: true, message: "Settings saved successfully" });
+  } catch (error) {
+    console.error("Error saving widget settings:", error);
+    return json({ success: false, error: "Failed to save settings" }, { status: 500 });
+  }
 };
 
 export default function Widgets() {
   const shopify = useAppBridge();
   const dispatch = useDispatch<AppDispatch>();
+  const submit = useSubmit();
+  const actionData = useActionData<typeof action>();
   const { widgetSlug, widgetSettings } = useLoaderData<typeof loader>();
-  
+
   // Get widgets from Redux store
   const widgets = useSelector((state: RootState) => selectWidgets(state));
 
@@ -71,10 +98,42 @@ export default function Widgets() {
   }, [dispatch, widgetSlug, JSON.stringify(widgetSettings)]);
 
   const handleSave = () => {
-    document.querySelector("form")?.requestSubmit();
-    shopify.toast.show('Message sent');
-    shopify.saveBar.hide("single-page-settings");
+    try {
+      // Get current Redux state
+      const currentWidgetsState = {
+        pageBlockSettings: {
+          pageActive: true,
+          icon: true,
+        },
+        widgets: widgets,
+      };
+
+      console.log('currentWidgetsState', currentWidgetsState);
+
+      // Create form data
+      const formData = new FormData();
+      formData.append("widgetsData", JSON.stringify(currentWidgetsState));
+
+      // Submit using Remix's submit
+      submit(formData, { method: "POST" });
+
+    } catch (error) {
+      console.error("Error saving:", error);
+      shopify.toast.show('Error saving settings', { isError: true });
+    }
   };
+
+  // Handle action response
+  useEffect(() => {
+    if (actionData) {
+      if (actionData.success) {
+        shopify.toast.show('Settings saved successfully');
+        shopify.saveBar.hide("single-page-settings");
+      } else {
+        shopify.toast.show('Error saving settings', { isError: true });
+      }
+    }
+  }, [actionData, shopify]);
 
   const handleDiscard = () => {
     console.log("Discarding");

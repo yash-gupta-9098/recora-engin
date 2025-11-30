@@ -69,6 +69,7 @@ export interface WidgetBackend {
   widgetName?: string;
   widgetDescription?: string;
   availableOnpages?: [{ value: string; label: string }[], string[]];
+  apply_on_pages?: string[];
   [k: string]: any;
 }
 
@@ -94,6 +95,7 @@ export interface WidgetConfig {
   no_of_products?: number;
   backend?: WidgetBackend;
   ruleSettings?: RuleSettings; // MAY be empty or populated
+  product_data_settings?: string[];
   widgetsSettings: WidgetsSettings;
   widgetSettings?: WidgetSpecificSettings; // Widget-specific overrides for global settings
   isActive?: boolean;

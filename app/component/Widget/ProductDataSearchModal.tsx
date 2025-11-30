@@ -1,3 +1,6 @@
+// ProductDataSearchModal_ALTERNATIVE.tsx
+// Alternative approach: Show disabled values in separate "Unavailable" section
+
 import {
   Modal,
   TextField,
@@ -5,6 +8,7 @@ import {
   Spinner,
   BlockStack,
   Text,
+  Banner,
 } from '@shopify/polaris';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -16,6 +20,7 @@ interface ProductDataSearchModalProps {
   onClose: () => void;
   field: 'product_vendor' | 'product_type' | 'product_tags';
   selectedValues: string[];
+  disabledValues?: string[];
   onSelect: (values: string[]) => void;
   heading: string;
 }
@@ -31,6 +36,7 @@ export default function ProductDataSearchModal({
   onClose,
   field,
   selectedValues,
+  disabledValues = [],
   onSelect,
   heading,
 }: ProductDataSearchModalProps) {
@@ -61,7 +67,6 @@ export default function ProductDataSearchModal({
   // Fetch initial data when modal opens (only if not already loaded)
   useEffect(() => {
     if (open && dataType) {
-      // Only fetch if we don't have data - keep Redux cache
       if (items.length === 0) {
         dispatch(fetchProductData({ type: dataType, search: '', limit: 10 }));
       }
@@ -76,11 +81,9 @@ export default function ProductDataSearchModal({
     
     isFetchingAllRef.current = true;
     
-    // Use provided cursor or get from current pagination
     let currentCursor = startCursor || pagination.cursor;
     let hasMore = pagination.hasNextPage;
 
-    // Keep fetching until no more pages
     while (hasMore && currentCursor) {
       const result = await dispatch(
         fetchProductData({
@@ -102,28 +105,34 @@ export default function ProductDataSearchModal({
     isFetchingAllRef.current = false;
   }, [dataType, dispatch, pagination.cursor, pagination.hasNextPage]);
 
-  // Handle search change - fetch all data when search is clicked
   const handleSearchChange = useCallback((value: string) => {
     setSearchQuery(value);
     
-    // When user types in search, fetch all remaining data if not already fetched
     if (value.trim() && pagination.hasNextPage && !isFetchingAllRef.current) {
       fetchAllData();
     }
   }, [fetchAllData, pagination.hasNextPage]);
 
   const handleSelectionChange = useCallback((selected: string[]) => {
-    // Find what was unselected (removed from localSelected)
-    const unselected = localSelected.filter((item) => !selected.includes(item));
+    console.log('🔄 Selection changed:', {
+      rawSelection: selected,
+      disabledValues: disabledValues,
+      previousSelection: localSelected
+    });
     
-    // Update localSelected with new selection
-    setLocalSelected(selected);
+    // Filter out disabled values from selection
+    const validSelection = selected.filter((item) => !disabledValues.includes(item));
     
-    // Note: Unselected items will automatically appear in filteredOptions
-    // because filteredOptions excludes items in localSelected
-  }, [localSelected]);
+    console.log('  ✅ Valid selection after filtering:', validSelection);
+    
+    // If user tried to select a disabled value, show warning
+    if (validSelection.length !== selected.length) {
+      console.warn('⚠️ Attempted to select disabled values - selection blocked');
+    }
+    
+    setLocalSelected(validSelection);
+  }, [localSelected, disabledValues]);
 
-  // Infinite scroll handler
   const handleScroll = useCallback(() => {
     if (!scrollContainerRef.current || loading || isLoadingMoreRef.current) return;
     
@@ -132,9 +141,7 @@ export default function ProductDataSearchModal({
     const scrollHeight = container.scrollHeight;
     const clientHeight = container.clientHeight;
 
-    // Load more when user scrolls near bottom (within 100px)
     if (scrollHeight - scrollTop - clientHeight < 100) {
-      // Load more if there's a next page and cursor exists
       if (pagination.hasNextPage && pagination.cursor) {
         isLoadingMoreRef.current = true;
         dispatch(
@@ -162,25 +169,25 @@ export default function ProductDataSearchModal({
     onClose();
   }, [selectedValues, onClose]);
 
-  // Filter options based on search (client-side filtering)
-  // Exclude selected values from filtered options
+  // Filter options: Exclude selected AND disabled values
   const filteredOptions = useMemo(() => {
     let filtered = options;
     
-    // Apply search filter if search query exists
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       filtered = options.filter((opt) => opt.label.toLowerCase().includes(query));
     }
     
-    // Exclude selected values from filtered options
-    return filtered.filter((opt) => !localSelected.includes(opt.value));
-  }, [options, searchQuery, localSelected]);
+    // Exclude BOTH selected values AND disabled values
+    return filtered.filter((opt) => 
+      !localSelected.includes(opt.value) && 
+      !disabledValues.includes(opt.value)
+    );
+  }, [options, searchQuery, localSelected, disabledValues]);
 
-  // Convert localSelected to options format
+  // Selected options (including search filter)
   const selectedOptions = useMemo(() => {
     let selected = localSelected.map((value) => {
-      // Try to find in options to get label, otherwise use value as label
       const option = options.find((opt) => opt.value === value);
       return {
         value,
@@ -188,7 +195,6 @@ export default function ProductDataSearchModal({
       };
     });
 
-    // Apply search filter to selected options if search query exists
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
       selected = selected.filter((opt) => opt.label.toLowerCase().includes(query));
@@ -197,10 +203,25 @@ export default function ProductDataSearchModal({
     return selected;
   }, [localSelected, options, searchQuery]);
 
-  // Handle tab change
- 
+  // Disabled/Unavailable options
+  const unavailableOptions = useMemo(() => {
+    let unavailable = options.filter(opt => disabledValues.includes(opt.value));
+    
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      unavailable = unavailable.filter((opt) => opt.label.toLowerCase().includes(query));
+    }
+    
+    return unavailable.map(opt => ({
+      ...opt,
+      label: `${opt.label} (Used in another condition)`,
+      disabled: true, // Still mark as disabled even though in separate section
+    }));
+  }, [options, disabledValues, searchQuery]);
 
-  // Note: Scroll handler is attached directly to div via onScroll prop
+  const disabledCount = useMemo(() => {
+    return disabledValues.length;
+  }, [disabledValues]);
 
   return (
     <Modal
@@ -219,7 +240,7 @@ export default function ProductDataSearchModal({
       ]}
     >
       <Modal.Section>
-        <BlockStack >
+        <BlockStack gap="400">
           <TextField
             label="Search"
             value={searchQuery}
@@ -227,6 +248,12 @@ export default function ProductDataSearchModal({
             placeholder={`Search ${heading.toLowerCase()}...`}
             autoComplete="off"
           />
+
+          {disabledCount > 0 && (
+            <Banner tone="info">
+              {disabledCount} value{disabledCount > 1 ? 's are' : ' is'} unavailable because {disabledCount > 1 ? 'they are' : 'it is'} already used in other conditions with the same field.
+            </Banner>
+          )}
 
           {loading && items.length === 0 ? (
             <div style={{ padding: '40px', textAlign: 'center' }}>
@@ -238,8 +265,7 @@ export default function ProductDataSearchModal({
             </Text>
           ) : (
             <>
-              {/* Build sections conditionally - only show if they have options */}
-              {selectedOptions.length === 0 && filteredOptions.length === 0 ? (
+              {selectedOptions.length === 0 && filteredOptions.length === 0 && unavailableOptions.length === 0 ? (
                 <div style={{ padding: '40px', textAlign: 'center' }}>
                     <Text as="p" tone="subdued">
                       No {heading.toLowerCase()} found{searchQuery ? ` matching "${searchQuery}"` : ''}
@@ -254,15 +280,20 @@ export default function ProductDataSearchModal({
                   <OptionList
                     selected={localSelected}
                     sections={[
-                      // Only add Selected section if it has options
+                      // Selected section
                       ...(selectedOptions.length > 0 ? [{
                         title: 'Selected',
                         options: selectedOptions,
                       }] : []),
-                      // Only add Available section if it has options
+                      // Available section (excludes both selected AND disabled)
                       ...(filteredOptions.length > 0 ? [{
                         title: 'Available',
                         options: filteredOptions,
+                      }] : []),
+                      // Unavailable section (shows disabled values, cannot be selected)
+                      ...(unavailableOptions.length > 0 ? [{
+                        title: 'Unavailable',
+                        options: unavailableOptions,
                       }] : []),
                     ]}
                     onChange={handleSelectionChange}
@@ -282,4 +313,3 @@ export default function ProductDataSearchModal({
     </Modal>
   );
 }
-

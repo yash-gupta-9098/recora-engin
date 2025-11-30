@@ -11,7 +11,7 @@ import {
   BlockStack,
 } from '@shopify/polaris';
 import {DeleteIcon} from '@shopify/polaris-icons';
-import {useState, useCallback, useEffect, useMemo} from 'react';
+import {useState, useCallback, useEffect, useMemo, useRef} from 'react';
 import ProductDataSearchModal from './ProductDataSearchModal';
 
 
@@ -23,25 +23,41 @@ interface WidgetRuleConditionProps {
     value: string;
   };
   showRemoveButton?: boolean;
+  disabledOperators?: string[];
+  disabledFields?: string[];
+  disabledValues?: string[];
   onRemove: () => void;
   onChange: (field: 'field' | 'operator' | 'value', value: string) => void;
   validationError?: string;
   isValueDisabled?: boolean;
 }
 
-export default function WidgetRuleCondition({ condition, onRemove, onChange ,  showRemoveButton, validationError, isValueDisabled = false }: WidgetRuleConditionProps) {
+export default function WidgetRuleCondition({ 
+  condition, 
+  onRemove, 
+  onChange, 
+  showRemoveButton, 
+  disabledOperators = [],
+  disabledFields = [],
+  disabledValues = [],
+  validationError, 
+  isValueDisabled = false 
+}: WidgetRuleConditionProps) {
   const availableFields = [
     {
       "value": "product_title",
-      "label": "Title"
+      "label": "Title",
+      "disabled": disabledFields.includes("product_title")
     },
     {
       "value": "product_type",
-      "label": "Type"
+      "label": "Type",
+      "disabled": disabledFields.includes("product_type")
     },
     {
       "value": "product_vendor",
-      "label": "Vendor"
+      "label": "Vendor",
+      "disabled": disabledFields.includes("product_vendor")
     },
     // {
     //   "value": "product_category",
@@ -49,11 +65,13 @@ export default function WidgetRuleCondition({ condition, onRemove, onChange ,  s
     // },
     {
       "value": "product_price",
-      "label": "Price"
+      "label": "Price",
+      "disabled": disabledFields.includes("product_price")
     },
     {
       "value": "product_tags",
-      "label": "Tag"
+      "label": "Tag",
+      "disabled": disabledFields.includes("product_tags")
     }
   ];
 
@@ -89,9 +107,17 @@ export default function WidgetRuleCondition({ condition, onRemove, onChange ,  s
     return operatorMappings[field] || operatorMappings[field];
   };
 
-  const [availableOperators, setAvailableOperators] = useState(getOperatorsForField(condition.field));
+  const [availableOperators, setAvailableOperators] = useState(
+    getOperatorsForField(condition.field).map(op => ({
+      ...op,
+      disabled: disabledOperators.includes(op.value)
+    }))
+  );
   const [isInvalid, setIsInvalid] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  
+  // Track the last field + operator combination to prevent infinite loops
+  const lastAutoSelectedRef = useRef({ field: '', operator: '' });
   
   // Validate value based on field type
   const isValueValidForField = useCallback((value: string, field: string): boolean => {
@@ -115,22 +141,84 @@ export default function WidgetRuleCondition({ condition, onRemove, onChange ,  s
     return value.trim().length >= 3;
   }, []);
   
-  // Update operators when field changes
+  // Update operators when field changes or disabledOperators changes
   useEffect(() => {
     const operators = getOperatorsForField(condition.field);
-    setAvailableOperators(operators);
     
-    // Auto-select first operator if current operator is not available for new field
-    if (!operators.find(op => op.value === condition.operator)) {
-      onChange('operator', operators[0]?.value || 'contains');
+    // Mark operators as disabled if they're already used for this field
+    const operatorsWithDisabled = operators.map(op => ({
+      ...op,
+      disabled: disabledOperators.includes(op.value)
+    }));
+    
+    setAvailableOperators(operatorsWithDisabled);
+    
+    // Check if current operator is valid for this field
+    const currentOperatorInList = operators.find(op => op.value === condition.operator);
+    const isCurrentOperatorDisabled = disabledOperators.includes(condition.operator);
+    
+    // Check if we already auto-selected for this field+operator combo
+    const alreadyAutoSelected = 
+      lastAutoSelectedRef.current.field === condition.field && 
+      lastAutoSelectedRef.current.operator === condition.operator;
+    
+    if (alreadyAutoSelected) {
+      return;
     }
     
-    // Clear value when field changes to ensure proper validation
-    if (condition.value) {
-      const isValid = isValueValidForField(condition.value, condition.field);
-      setIsInvalid(!isValid);
+    // Auto-select first available operator if:
+    // 1. Current operator doesn't exist for this field, OR
+    // 2. Current operator is disabled (already used in another condition with same field)
+    if (!currentOperatorInList || isCurrentOperatorDisabled) {
+      const firstAvailable = operatorsWithDisabled.find(op => !op.disabled);
+      
+      if (firstAvailable) {
+        // Only update if different from current to avoid infinite loops
+        if (firstAvailable.value !== condition.operator) {
+          // Update ref to track this auto-selection
+          lastAutoSelectedRef.current = {
+            field: condition.field,
+            operator: firstAvailable.value
+          };
+          
+          onChange('operator', firstAvailable.value);
+        }
+      }
+    } else {
+      // Current operator is valid, update ref
+      if (lastAutoSelectedRef.current.field !== condition.field || 
+          lastAutoSelectedRef.current.operator !== condition.operator) {
+        lastAutoSelectedRef.current = {
+          field: condition.field,
+          operator: condition.operator
+        };
+      }
     }
-  }, [condition.field, condition.value, condition.operator, isValueValidForField, onChange]);
+
+    const currentFieldInList = availableFields.find(f => f.value === condition.field);
+    const isCurrentFieldDisabled = disabledFields.includes(condition.field);
+
+    if (!currentFieldInList || isCurrentFieldDisabled) {
+      const firstAvailableField = availableFields.find(f => !f.disabled);
+
+      if (firstAvailableField && firstAvailableField.value !== condition.field) {
+        lastAutoSelectedRef.current = {
+          field: firstAvailableField.value,
+          operator: ""
+        };
+        onChange('field', firstAvailableField.value);
+        return;
+      }
+    }
+  }, [
+    condition.field, 
+    condition.operator,
+    condition.id,
+    disabledOperators.join(','), 
+    onChange
+  ]);
+
+
   
   // Validate value when it changes
   useEffect(() => {
@@ -140,16 +228,37 @@ export default function WidgetRuleCondition({ condition, onRemove, onChange ,  s
 
   const handleFieldChange = useCallback(
     (value: string) => {
+      // Check if this field is disabled (all operators exhausted)
+      if (disabledFields.includes(value)) {
+        console.warn('❌ Attempted to select disabled field (all operators exhausted):', value);
+        return;
+      }
+      
+      // Reset auto-selection tracking when field changes
+      lastAutoSelectedRef.current = { field: '', operator: '' };
+      
       onChange('field', value);
     },
-    [onChange]
+    [onChange, disabledFields]
   );
 
   const handleOperatorChange = useCallback(
     (value: string) => {
+      // Check if this operator is disabled (already used with this field in another condition)
+      if (disabledOperators.includes(value)) {
+        console.warn('❌ Attempted to select disabled operator:', value);
+        return;
+      }
+      
+      // Reset auto-selection tracking when user manually changes
+      lastAutoSelectedRef.current = {
+        field: condition.field,
+        operator: value
+      };
+      
       onChange('operator', value);
     },
-    [onChange]
+    [onChange, disabledOperators, condition.field]
   );
 
   const handleValueChange = useCallback(
@@ -254,6 +363,7 @@ export default function WidgetRuleCondition({ condition, onRemove, onChange ,  s
                       onClose={() => setModalOpen(false)}
                       field={condition.field as 'product_vendor' | 'product_type' | 'product_tags'}
                       selectedValues={selectedValues}
+                      disabledValues={disabledValues}
                       onSelect={handleModalSelect}
                       heading={getFieldLabel(condition.field)}
                     />

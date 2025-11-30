@@ -88,6 +88,142 @@ export default function SinglePage({
 
   const [showSlidekick, setShowSlidekick] = useState(false);
 
+  // Get disabled operators for a specific field (excluding current condition)
+  const getDisabledOperators = useCallback((widgetKey: string, currentConditionId: string, currentField: string) => {
+    const widget = settings[widgetKey];
+    if (!widget || !widget.ruleSettings || !widget.ruleSettings.conditions) return [];
+    
+    // Get UNIQUE operators already used for this field (excluding current condition)
+    const disabledOps = [...new Set(
+      (widget.ruleSettings?.conditions || [])
+        .filter(condition =>
+          condition.id !== currentConditionId &&
+          condition.field === currentField
+        )
+        .map(condition => condition.operator)
+        .filter(Boolean)
+    )];
+    
+    return disabledOps;
+  }, [settings]);
+
+  // All possible field-operator mappings (shared constant)
+  const fieldOperatorMap: Record<string, string[]> = {
+    'product_title': ['contains'],
+    'product_type': ['is_equal_to', 'is_not_equal_to'],
+    'product_vendor': ['is_equal_to', 'is_not_equal_to'],
+    'product_price': ['greater_than', 'less_than'],
+    'product_tags': ['is_equal_to', 'is_not_equal_to']
+  };
+
+  // Get disabled fields - fields where ALL operators are already used
+  const getDisabledFields = useCallback((widgetKey: string, currentConditionId: string) => {
+    const widget = settings[widgetKey];
+    if (!widget || !widget.ruleSettings || !widget.ruleSettings.conditions) return [];
+
+    const disabledFields: string[] = [];
+    console.log('demo',widget)
+    // Check each field
+    Object.entries(fieldOperatorMap).forEach(([field, allOperators]) => {
+      // Get all UNIQUE operators already used for this field (excluding current condition)
+      const usedOperators = [...new Set(
+        (widget?.ruleSettings?.conditions || [])
+          .filter(condition =>
+            condition.id !== currentConditionId &&
+            condition.field === field
+          )
+          .map(condition => condition.operator)
+      )];
+
+      // If all unique operators are used, disable this field
+      if (usedOperators.length >= allOperators.length) {
+        disabledFields.push(field);
+      }
+    });
+
+    return disabledFields;
+  }, [settings]);
+
+  // Check if all field-operator combinations are used
+  const areAllCombinationsUsed = useCallback((widgetKey: string) => {
+    const widget = settings[widgetKey];
+    if (!widget || !widget.ruleSettings || !widget.ruleSettings.conditions) return false;
+
+    // Calculate total possible combinations
+    const totalCombinations = Object.values(fieldOperatorMap).reduce(
+      (sum, operators) => sum + operators.length,
+      0
+    );
+
+    // Get all unique field-operator pairs currently in use
+    const usedCombinations = new Set(
+      (widget.ruleSettings.conditions || []).map(
+        condition => `${condition.field}:${condition.operator}`
+      )
+    );
+
+    // If number of used combinations equals total possible combinations, all are used
+    return usedCombinations.size >= totalCombinations;
+  }, [settings]);
+
+  // Get disabled values for modal fields (vendor, type, tags)
+  const getDisabledValues = useCallback((widgetKey: string, currentConditionId: string, currentField: string, currentOperator: string) => {
+    const widget = settings[widgetKey];
+    if (!widget || !widget.ruleSettings || !widget.ruleSettings.conditions) return [];
+    
+    // Only apply to modal fields
+    if (!['product_vendor', 'product_type', 'product_tags'].includes(currentField)) {
+      return [];
+    }
+    
+    // console.log(`🔍 getDisabledValues called:`, {
+    //   currentConditionId,
+    //   currentField,
+    //   currentOperator,
+    //   totalConditions: widget.ruleSettings?.conditions?.length || 0
+    // });
+    
+    // Get all values already used for this FIELD (regardless of operator, excluding current condition)
+    const usedValues: string[] = [];
+
+    (widget.ruleSettings?.conditions || [])
+      .filter(condition =>
+        condition.id !== currentConditionId &&
+        condition.field === currentField &&
+        // ⬇️ REMOVED operator check - now disables across ALL operators
+        condition.value
+      )
+      .forEach(condition => {
+        // console.log(`  📝 Found matching condition:`, {
+        //   id: condition.id,
+        //   field: condition.field,
+        //   operator: condition.operator,
+        //   value: condition.value
+        // });
+        
+        // Parse the values (could be comma-separated string or JSON array)
+        let values: string[] = [];
+        try {
+          const parsed = JSON.parse(condition.value);
+          if (Array.isArray(parsed)) {
+            values = parsed;
+          }
+        } catch {
+          // If not JSON, split by comma
+          values = condition.value.split(',').map(v => v.trim()).filter(v => v.length > 0);
+        }
+        
+        // console.log(`    ➡️ Extracted values:`, values);
+        usedValues.push(...values);
+      });
+    
+    const uniqueDisabled = [...new Set(usedValues)];
+    // console.log(`✅ Final disabled values (across ALL operators):`, uniqueDisabled);
+    
+    // Return unique disabled values
+    return uniqueDisabled;
+  }, [settings]);
+
   const handleToggle = useCallback((key: string) => {
     setOpenWidget((prev) => {
       const newValue = prev === key ? null : key;
@@ -137,9 +273,39 @@ export default function SinglePage({
       field: "field" | "operator" | "value",
       value: string,
     ) => {
+      const widget = settings[widgetKey];
+      
+      // If changing field or operator, check for duplicates
+      if (field === 'field' || field === 'operator') {
+        if (!widget || !widget.ruleSettings || !widget.ruleSettings.conditions) {
+          dispatch(widgetActions.updateCondition({ widgetId: widgetKey, conditionId, field, value }));
+          return;
+        }
+        
+        const currentCondition = widget.ruleSettings.conditions.find(c => c.id === conditionId);
+        
+        if (currentCondition) {
+          // Determine what the new field and operator will be
+          const newField = field === 'field' ? value : currentCondition.field;
+          const newOperator = field === 'operator' ? value : currentCondition.operator;
+          
+          // Check if this combination already exists in another condition
+          const duplicateExists = widget.ruleSettings.conditions.some(c => 
+            c.id !== conditionId && 
+            c.field === newField && 
+            c.operator === newOperator
+          );
+          
+          if (duplicateExists) {
+            console.warn(`❌ Duplicate detected: ${newField} + ${newOperator} already exists. Change blocked.`);
+            return; // Don't allow the change
+          }
+        }
+      }
+      
       dispatch(widgetActions.updateCondition({ widgetId: widgetKey, conditionId, field, value }));
     },
-    [dispatch],
+    [settings, dispatch],
   );
 
   function capitalize(text: string): string {
@@ -240,18 +406,26 @@ export default function SinglePage({
                         >
                           <Card >
                             <BlockStack gap="200">
-                            
-                                {/* <Card background="bg-fill-transparent" roundedAbove="md" > */}
-                                <BlockStack gap="200" >
-                                    <Text as="h3" fontWeight="bold">
-                                      Widget Settings
-                                    </Text>
-                                    <RelatedProductSelection />
-                                    <Divider borderWidth="0"/>
-                                </BlockStack>                              
-                              {/* </Card> */}
 
-                            <Divider />
+                                {/* Widget Settings - Show only for "Related Products" widget */}
+                                {widget?.backend?.widgetName === "Related Products" && (
+                                  <>
+                                    <BlockStack gap="200" >
+                                        <Text as="h3" fontWeight="bold">
+                                          Widget Settings
+                                        </Text>
+                                        <RelatedProductSelection
+                                          widgetKey={key}
+                                          dispatch={dispatch}
+                                          initialSelectedValues={widget?.product_data_settings}
+                                        />
+                                        <Divider borderWidth="0"/>
+                                    </BlockStack>
+                                    <Divider />
+                                  </>
+                                )}
+
+
 
                             
 
@@ -260,7 +434,7 @@ export default function SinglePage({
                                   <Text as="h3" fontWeight="bold">
                                     Condition
                                   </Text>
-                                  {widget?.ruleSettings?.conditions?.length > 0 ? (
+                                  {(widget?.ruleSettings?.conditions?.length ?? 0) > 0 ? (
                                     <InlineStack blockAlign="center" gap="500">
                                       <Text as="p" variant="bodyMd">
                                         Products must match:
@@ -330,9 +504,55 @@ export default function SinglePage({
                                         <Divider /> 
                                        <Box paddingInline="400" paddingBlock="200">                                        
                                         <ButtonGroup>
-                                          <Button variant="plain"disabled={(selectedPagesName[key]?.length || 0) < 1}
-      onClick={() => handleSelectedPagesChange(key, [])}>Clear</Button>
-                                          <Button variant="primary" disabled={(selectedPagesName[key]?.length || 0) < 1} >Apply</Button>
+                                          <Button
+                                            variant="plain"
+                                            disabled={(selectedPagesName[key]?.length || 0) < 1}
+                                            onClick={() => {
+                                              handleSelectedPagesChange(key, []);
+                                              // Clear pages from Redux
+                                              const updatedWidget = {
+                                                ...widget,
+                                                backend: {
+                                                  ...widget.backend,
+                                                  apply_on_pages: [],
+                                                },
+                                              };
+                                              dispatch(widgetActions.setFullConfig({
+                                                ...settings,
+                                                widgets: {
+                                                  ...settings,
+                                                  [key]: updatedWidget,
+                                                },
+                                              }));
+                                              toggleAllPagesAddPopover(key);
+                                            }}
+                                          >
+                                            Clear
+                                          </Button>
+                                          <Button
+                                            variant="primary"
+                                            disabled={(selectedPagesName[key]?.length || 0) < 1}
+                                            onClick={() => {
+                                              // Set pages to Redux
+                                              const updatedWidget = {
+                                                ...widget,
+                                                backend: {
+                                                  ...widget.backend,
+                                                  apply_on_pages: selectedPagesName[key] || [],
+                                                },
+                                              };
+                                              dispatch(widgetActions.setFullConfig({
+                                                ...settings,
+                                                widgets: {
+                                                  ...settings,
+                                                  [key]: updatedWidget,
+                                                },
+                                              }));
+                                              toggleAllPagesAddPopover(key);
+                                            }}
+                                          >
+                                            Apply
+                                          </Button>
                                         </ButtonGroup>
                                         </Box>
                                         </BlockStack>
@@ -351,38 +571,52 @@ export default function SinglePage({
                               </InlineStack>
 
                               {widget?.ruleSettings?.conditions?.map(
-                                (condition: any) => (
-                                  <WidgetRuleCondition
-                                    key={condition.id}
-                                    condition={{
-                                      id: condition.id,
-                                      field: condition.field,
-                                      operator: condition.operator,
-                                      value: condition.value,
-                                    }}
-                                    onRemove={() =>
-                                      handleRemoveCondition(key, condition.id)
-                                    }
-                                    onChange={(field, value) =>
-                                      handleConditionChange(
-                                        key,
-                                        condition.id,
-                                        field,
-                                        value,
-                                      )
-                                    }
-                                  />
-                                ),
+                                (condition: any) => {
+                                  // Calculate disabled operators based on current condition's field
+                                  const currentDisabledOperators = getDisabledOperators(key, condition.id, condition.field);
+                                  
+                                  // Calculate disabled fields (where all operators are exhausted)
+                                  const currentDisabledFields = getDisabledFields(key, condition.id);
+                                  
+                                  // Calculate disabled values for modal fields
+                                  const currentDisabledValues = getDisabledValues(key, condition.id, condition.field, condition.operator);
+                                  
+                                  return (
+                                    <WidgetRuleCondition
+                                      key={condition.id}
+                                      condition={{
+                                        id: condition.id,
+                                        field: condition.field,
+                                        operator: condition.operator,
+                                        value: condition.value,
+                                      }}
+                                      disabledOperators={currentDisabledOperators}
+                                      disabledFields={currentDisabledFields}
+                                      disabledValues={currentDisabledValues}
+                                      onRemove={() =>
+                                        handleRemoveCondition(key, condition.id)
+                                      }
+                                      onChange={(field, value) =>
+                                        handleConditionChange(
+                                          key,
+                                          condition.id,
+                                          field,
+                                          value,
+                                        )
+                                      }
+                                    />
+                                  );
+                                }
                               )}
 
                               <InlineStack>
                                 <Button
                                   icon={PlusIcon}
                                   onClick={() => handleAddCondition(key)}
-                                  disabled={widget?.ruleSettings?.conditions ? false : true}
+                                  disabled={!widget?.ruleSettings?.conditions || areAllCombinationsUsed(key)}
                                 // loading={fetcher?.state === 'submitting'}
                                 >
-                                  {`Add ${widget?.ruleSettings?.conditions?.length > 0 ? "Another" : ""} Condition `}
+                                  {`Add ${(widget?.ruleSettings?.conditions?.length ?? 0) > 0 ? "Another" : ""} Condition `}
                                 </Button>
                               </InlineStack>
                             </BlockStack>

@@ -55,6 +55,7 @@ export const newArrivalsConfig : WidgetConfig = {
     widgetName: "New Arrivals",
     widgetDescription: "Displays the latest products added to the store.",
     availableOnpages: [ avaibleAllPageList , []],
+    apply_on_pages:[]
   },
   ruleSettings: { priceMatch: "all", conditions: [] },
   isActive: true,
@@ -68,6 +69,7 @@ export const relatedProductsConfig : WidgetConfig = {
         widgetName: "Related Products",
         widgetDescription: "Displays products related to the currently viewed product.",
         availableOnpages: [ avaibleIdBasedPageList , []],
+        apply_on_pages:[]
         },
     ruleSettings: {priceMatch: "all", conditions: []},
     isActive: true,
@@ -82,6 +84,7 @@ export const topSellingProductsConfig : WidgetConfig = {
     widgetName: "Top Selling Products",
     widgetDescription: "Displays Top Selling products to the user.",
     availableOnpages: [ avaibleAllPageList , []],
+    apply_on_pages:[]
   },
   ruleSettings: { priceMatch: "all", conditions: [] },
   isActive: true,
@@ -95,6 +98,7 @@ export const trendingProductsConfig : WidgetConfig = {
     widgetName: "Trending Products",
     widgetDescription: "Displays Trending products to the user.",
     availableOnpages: [ avaibleAllPageList , []],
+    apply_on_pages:[]
   },
   ruleSettings: { priceMatch: "all", conditions: [] },
   isActive: true,
@@ -108,6 +112,7 @@ export const aiBasedRecommendationsConfig : WidgetConfig = {
     widgetName: "AI Based Recommendations",
     widgetDescription: "Displays AI-based recommended products.",
     availableOnpages: [ avaibleAllPageList , []],
+    apply_on_pages:[]
   },
   ruleSettings: {},
   isActive: true,
@@ -122,6 +127,7 @@ export const recentlyViewedProductsConfig : WidgetConfig = {
     widgetName: "Recently Viewed Products",
     widgetDescription: "Displays products recently viewed by the user.",
     availableOnpages: [ avaibleAllPageList , []],
+    apply_on_pages:[]
   },
   ruleSettings: {},
   isActive: true,
@@ -136,6 +142,7 @@ export const manualProductsConfig : WidgetConfig = {
         widgetName: "Manual Products",
         widgetDescription: "Displays products selected manually by the user.",
         availableOnpages: [ avaibleIdBasedPageList , []],
+        apply_on_pages:[]
         },
     ruleSettings: {},
     isActive: true,
@@ -150,6 +157,7 @@ export const featureCollectionConfig : WidgetConfig = {
         widgetName: "Feature Collection",
         widgetDescription: "Displays products from a featured collection.",
         availableOnpages: [ avaibleAllPageList , []],
+        apply_on_pages:[]
         },
     ruleSettings: {priceMatch: "all", conditions: []},
     isActive: true,

@@ -174,6 +174,19 @@ const widgetSlice = createSlice({
       widget.widgetSettings.useGlobalSettings = useGlobal;
       widget.updatedAt = now();
     },
+    
+        updateProductDataSettings(
+      state,
+      action: PayloadAction<{ widgetId: string; settings: string[] }>
+    ) {
+      const { widgetId, settings } = action.payload;
+      const widget = state.widgets[widgetId];
+      if (!widget) return;
+
+      widget.product_data_settings = settings;
+      widget.updatedAt = now();
+    },
+  
   },
 });
 

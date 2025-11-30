@@ -1,8 +1,15 @@
 import { Autocomplete, BlockStack, ExceptionList, Icon, InlineStack, Tag, Text, Tooltip } from "@shopify/polaris";
 import { AlertBubbleIcon, CaretDownIcon, NoteIcon, PlusCircleIcon } from "@shopify/polaris-icons";
 import { useState, useCallback, useMemo } from "react";
+import { widgetActions } from "app/redux/slices/pageWidgetConfigSlice";
 
-function RelatedProductSelection() {
+interface RelatedProductSelectionProps {
+  widgetKey: string;
+  dispatch: React.Dispatch<any>;
+  initialSelectedValues?: string[];
+}
+
+function RelatedProductSelection({ widgetKey, dispatch, initialSelectedValues = ["collection"] }: RelatedProductSelectionProps) {
   const initialOptions = useMemo(
     () => [
       { label: "Collection", value: "collection" },
@@ -17,7 +24,7 @@ function RelatedProductSelection() {
     []
   );
 
-  const [selectedValues, setSelectedValues] = useState<string[]>(["collection"]);
+  const [selectedValues, setSelectedValues] = useState<string[]>(initialSelectedValues);
   const [availableOptions, setAvailableOptions] = useState(initialOptions);
 
   const handleRemoveTag = useCallback(
@@ -25,11 +32,15 @@ function RelatedProductSelection() {
       const updated = [...selectedValues];
       updated.splice(updated.indexOf(tag), 1);
       setSelectedValues(updated);
-    },
-    [selectedValues]
-  );
 
-  
+      // Update Redux with product_data_settings
+      dispatch(widgetActions.updateProductDataSettings({
+        widgetId: widgetKey,
+        settings: updated,
+      }));
+    },
+    [selectedValues, dispatch, widgetKey]
+  );
 
   const handleSelect = useCallback(
     (selected: string[]) => {
@@ -41,9 +52,14 @@ function RelatedProductSelection() {
       });
 
       setSelectedValues(selected);
-      setSearchValue(selectedLabels[0] || "");
+
+      // Update Redux with product_data_settings
+      dispatch(widgetActions.updateProductDataSettings({
+        widgetId: widgetKey,
+        settings: selected,
+      }));
     },
-    [availableOptions]
+    [availableOptions, dispatch, widgetKey]
   );
 
   const hasSelected = selectedValues.length > 0;
