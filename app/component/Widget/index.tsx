@@ -3,6 +3,7 @@ import { TitleBar } from "@shopify/app-bridge-react";
 import {
   ActionList,
   Badge,
+  Banner,
   BlockStack,
   Box,
   Button,
@@ -17,6 +18,7 @@ import {
   Key,
   Layout,
   Link,
+  Modal,
   OptionList,
   Page,
   Popover,
@@ -50,6 +52,8 @@ interface WidgetSettingProps {
   settings: Record<string, WidgetConfig>;
   dispatch: React.Dispatch<any>;
   children?: React.ReactNode;
+  shopify?: any;
+  shopDomain?: string;
 }
 
 export default function SinglePage({
@@ -57,6 +61,8 @@ export default function SinglePage({
   settings,
   dispatch,
   children,
+  shopify,
+  shopDomain,
 }: WidgetSettingProps) {
   const [openWidget, setOpenWidget] = useState<string | null>(
     Object.keys(settings)[0],
@@ -64,8 +70,110 @@ export default function SinglePage({
 
   const [allPagesAddPopover, setAllPagesAddPopover] = useState<Record<string, boolean>>({});
 
-
   const [selectedPagesName, setSelectedPagesName] = useState<Record<string, string[]>>({});
+
+  // Track pages with existing conditions for display
+  const [pagesWithExistingConditions, setPagesWithExistingConditions] = useState<Record<string, string[]>>({});
+
+  // Confirmation modal state
+  const [confirmModalActive, setConfirmModalActive] = useState(false);
+  const [pendingApplyData, setPendingApplyData] = useState<{widgetKey: string, selectedPages: string[]} | null>(null);
+
+  // Handle confirmation and apply conditions
+  const handleConfirmApply = async (data: {widgetKey: string, selectedPages: string[]} | null) => {
+    if (!data) return;
+
+    const { widgetKey: key, selectedPages } = data;
+    const widget = settings[key];
+
+    // Check if any selected page has existing conditions
+    const pagesWithConditions: string[] = [];
+
+    try {
+      // Check each selected page for existing data
+      for (const page of selectedPages) {
+        if (page !== pageName) {
+          const response = await fetch(`/app/features/${page}`);
+          if (response.ok) {
+            const dataRes = await response.json();
+            const pageWidget = dataRes?.widgetSettings?.[key];
+
+            if (pageWidget?.ruleSettings?.conditions?.length > 0 ||
+                pageWidget?.product_data_settings?.length > 0) {
+              pagesWithConditions.push(page);
+            }
+          }
+        }
+      }
+
+      // Store pages with existing conditions for display
+      if (pagesWithConditions.length > 0) {
+        setPagesWithExistingConditions(prev => ({
+          ...prev,
+          [key]: pagesWithConditions,
+        }));
+      }
+
+      // Proceed with applying settings
+      // Merge existing apply_on_pages with new selected pages
+      const existingApplyOnPages = widget?.backend?.apply_on_pages || [];
+      const mergedPages = [...new Set([...existingApplyOnPages, ...selectedPages])];
+
+      const updatedWidget = {
+        ...widget,
+        backend: {
+          ...widget.backend,
+          apply_on_pages: mergedPages,
+        },
+      };
+      dispatch(widgetActions.setFullConfig({
+        ...settings,
+        widgets: {
+          ...settings,
+          [key]: updatedWidget,
+        },
+      }));
+
+      // Store selected pages for later use when saving
+      (window as any).__selectedPagesForWidgets = {
+        ...((window as any).__selectedPagesForWidgets || {}),
+        [key]: selectedPages,
+      };
+
+      toggleAllPagesAddPopover(key);
+    } catch (error) {
+      console.error('Error checking existing conditions:', error);
+      // On error, proceed anyway with merged pages
+      const existingApplyOnPages = widget?.backend?.apply_on_pages || [];
+      const mergedPages = [...new Set([...existingApplyOnPages, ...selectedPages])];
+
+      const updatedWidget = {
+        ...widget,
+        backend: {
+          ...widget.backend,
+          apply_on_pages: mergedPages,
+        },
+      };
+      dispatch(widgetActions.setFullConfig({
+        ...settings,
+        widgets: {
+          ...settings,
+          [key]: updatedWidget,
+        },
+      }));
+
+      (window as any).__selectedPagesForWidgets = {
+        ...((window as any).__selectedPagesForWidgets || {}),
+        [key]: selectedPages,
+      };
+
+      toggleAllPagesAddPopover(key);
+    }
+
+    // Close modal
+    setConfirmModalActive(false);
+    setPendingApplyData(null);
+  };
   // const toggleAllPagesAddPopover = useCallback(
   //   () => setAllPagesAddPopover((allPagesAddPopover) => !allPagesAddPopover),
   //   [],
@@ -380,11 +488,38 @@ export default function SinglePage({
                               Customize
                             </Button>
                             <Button
-                              url={`#`}
+                              onClick={() => {
+                                if (shopify && shopDomain) {
+                                  // Map page names to Shopify template names
+                                  const templateMap: Record<string, string> = {
+                                    'home': 'index',
+                                    'product': 'product',
+                                    'cart': 'cart',
+                                    'collection': 'collection',
+                                    'search': 'search',
+                                    'notFound': '404',
+                                    'other': 'page'
+                                  };
+
+                                  const template = templateMap[pageName] || 'index';
+
+                                  // Extract shop name from domain (remove .myshopify.com)
+                                  const shopName = shopDomain.replace('.myshopify.com', '');
+
+                                  shopify.toast.show('Opening theme editor. Click "Add block" and search for "New Arrivals" under Apps.');
+
+                                  // Open theme editor with the correct template - no context parameter
+                                  // User will click on a section, then "Add block", then find "New Arrivals" under Apps
+                                  window.open(
+                                    `https://admin.shopify.com/store/${shopName}/themes/current/editor?template=${template}`,
+                                    '_top'
+                                  );
+                                }
+                              }}
                               variant="primary"
                               icon={ExternalIcon}
                             >
-                              {`Add Widget`}
+                              {`Add to Theme`}
                             </Button>
                           </InlineStack>
                         </div>
@@ -494,6 +629,32 @@ export default function SinglePage({
                                     >
                                       {/* <FormLayout> */}
                                         <BlockStack gap="100">
+                                        {/* Display applied pages message */}
+                                        {widget?.backend?.apply_on_pages && widget.backend.apply_on_pages.length > 0 && (() => {
+                                          // Filter out current page from the list
+                                          const otherPages = widget.backend.apply_on_pages.filter(page => page !== pageName);
+                                          return otherPages.length > 0 ? (
+                                            <Box paddingInline="400" paddingBlockStart="200" paddingBlockEnd="200">
+                                              <Banner tone="info">
+                                                <Text as="p" variant="bodySm">
+                                                  <Text as="span" fontWeight="semibold">Applied condition for: </Text>
+                                                  {otherPages.join(', ')} pages
+                                                </Text>
+                                              </Banner>
+                                            </Box>
+                                          ) : null;
+                                        })()}
+                                        {/* Display pages with existing conditions */}
+                                        {pagesWithExistingConditions[key] && pagesWithExistingConditions[key].length > 0 && (
+                                          <Box paddingInline="400" paddingBlockEnd="200">
+                                            <Banner tone="warning">
+                                              <Text as="p" variant="bodySm">
+                                                <Text as="span" fontWeight="semibold">Pages with existing conditions: </Text>
+                                                {pagesWithExistingConditions[key].join(', ')}
+                                              </Text>
+                                            </Banner>
+                                          </Box>
+                                        )}
                                         <OptionList
                                           title="Condition apply for selected pages"
                                           onChange={(selected) => handleSelectedPagesChange (key , selected)}
@@ -509,6 +670,11 @@ export default function SinglePage({
                                             disabled={(selectedPagesName[key]?.length || 0) < 1}
                                             onClick={() => {
                                               handleSelectedPagesChange(key, []);
+                                              // Clear pages with existing conditions
+                                              setPagesWithExistingConditions(prev => ({
+                                                ...prev,
+                                                [key]: [],
+                                              }));
                                               // Clear pages from Redux
                                               const updatedWidget = {
                                                 ...widget,
@@ -533,22 +699,10 @@ export default function SinglePage({
                                             variant="primary"
                                             disabled={(selectedPagesName[key]?.length || 0) < 1}
                                             onClick={() => {
-                                              // Set pages to Redux
-                                              const updatedWidget = {
-                                                ...widget,
-                                                backend: {
-                                                  ...widget.backend,
-                                                  apply_on_pages: selectedPagesName[key] || [],
-                                                },
-                                              };
-                                              dispatch(widgetActions.setFullConfig({
-                                                ...settings,
-                                                widgets: {
-                                                  ...settings,
-                                                  [key]: updatedWidget,
-                                                },
-                                              }));
-                                              toggleAllPagesAddPopover(key);
+                                              const selectedPages = selectedPagesName[key] || [];
+                                              // Show confirmation modal
+                                              setPendingApplyData({ widgetKey: key, selectedPages });
+                                              setConfirmModalActive(true);
                                             }}
                                           >
                                             Apply
@@ -557,7 +711,7 @@ export default function SinglePage({
                                         </Box>
                                         </BlockStack>
                                       {/* </FormLayout> */}
-                                    </Popover>                                    
+                                    </Popover>
                                     <Tooltip content="Custom Widget Settings" dismissOnMouseOut>
                                       <Button
                                         icon={SettingsIcon}
@@ -734,6 +888,35 @@ export default function SinglePage({
         </InlineGrid>
         {children}
       </Page>
+
+      {/* Confirmation Modal */}
+      <Modal
+        open={confirmModalActive}
+        onClose={() => {
+          setConfirmModalActive(false);
+          setPendingApplyData(null);
+        }}
+        title="Confirm Apply Conditions"
+        primaryAction={{
+          content: 'Yes, Apply',
+          onAction: () => handleConfirmApply(pendingApplyData),
+        }}
+        secondaryActions={[
+          {
+            content: 'Cancel',
+            onAction: () => {
+              setConfirmModalActive(false);
+              setPendingApplyData(null);
+            },
+          },
+        ]}
+      >
+        <Modal.Section>
+          <Text as="p">
+            Are you sure you want to apply these conditions to the selected pages?
+          </Text>
+        </Modal.Section>
+      </Modal>
     </>
   );
 }
