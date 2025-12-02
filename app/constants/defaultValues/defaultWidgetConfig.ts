@@ -47,12 +47,12 @@ const baseWidget = (title: string) => ({
 });
 
 
-export const newArrivalsConfig : WidgetConfig = {
-  ...baseWidget("New Arrivals"),
+export const latestArrivalsConfig : WidgetConfig = {
+  ...baseWidget("Latest Arrivals"),
   active: true,
   no_of_products: 10,
   backend: {
-    widgetName: "New Arrivals",
+    widgetName: "Latest Arrivals",
     widgetDescription: "Displays the latest products added to the store.",
     availableOnpages: [ avaibleAllPageList , []],
     apply_on_pages:[]
@@ -62,11 +62,11 @@ export const newArrivalsConfig : WidgetConfig = {
 };
 
 
-export const relatedProductsConfig : WidgetConfig = {
-  ...baseWidget("Related Products"),
+export const similarProductsConfig : WidgetConfig = {
+  ...baseWidget("Similar Products"),
   active: true,
     backend: {
-        widgetName: "Related Products",
+        widgetName: "Similar Products",
         widgetDescription: "Displays products related to the currently viewed product.",
         availableOnpages: [ avaibleIdBasedPageList , []],
         apply_on_pages:[]
@@ -77,11 +77,11 @@ export const relatedProductsConfig : WidgetConfig = {
 
 
 
-export const topSellingProductsConfig : WidgetConfig = {
-  ...baseWidget("Top Selling Products"),
+export const bestSellersConfig : WidgetConfig = {
+  ...baseWidget("Best Sellers"),
   active: true,
   backend: {
-    widgetName: "Top Selling Products",
+    widgetName: "Best Sellers",
     widgetDescription: "Displays Top Selling products to the user.",
     availableOnpages: [ avaibleAllPageList , []],
     apply_on_pages:[]
@@ -91,11 +91,11 @@ export const topSellingProductsConfig : WidgetConfig = {
 };
 
 
-export const trendingProductsConfig : WidgetConfig = {
-  ...baseWidget("Trending Products"),
+export const trendingNowConfig : WidgetConfig = {
+  ...baseWidget("Trending Now"),
   active: true,
   backend: {
-    widgetName: "Trending Products",
+    widgetName: "Trending Now",
     widgetDescription: "Displays Trending products to the user.",
     availableOnpages: [ avaibleAllPageList , []],
     apply_on_pages:[]
@@ -105,11 +105,11 @@ export const trendingProductsConfig : WidgetConfig = {
 };
 
 
-export const aiBasedRecommendationsConfig : WidgetConfig = {
-  ...baseWidget("AI Based Recommendations"),
+export const aiSmartPicksConfig : WidgetConfig = {
+  ...baseWidget("AI Smart Picks"),
   active: true,
   backend: {
-    widgetName: "AI Based Recommendations",
+    widgetName: "AI Smart Picks",
     widgetDescription: "Displays AI-based recommended products.",
     availableOnpages: [ avaibleAllPageList , []],
     apply_on_pages:[]
@@ -120,11 +120,11 @@ export const aiBasedRecommendationsConfig : WidgetConfig = {
 
 
 
-export const recentlyViewedProductsConfig : WidgetConfig = {
-  ...baseWidget("Recently Viewed Products"),
+export const recentlyViewedConfig : WidgetConfig = {
+  ...baseWidget("Recently Viewed"),
   active: true,
   backend: {
-    widgetName: "Recently Viewed Products",
+    widgetName: "Recently Viewed",
     widgetDescription: "Displays products recently viewed by the user.",
     availableOnpages: [ avaibleAllPageList , []],
     apply_on_pages:[]
@@ -135,11 +135,11 @@ export const recentlyViewedProductsConfig : WidgetConfig = {
 
 
 
-export const manualProductsConfig : WidgetConfig = {
-  ...baseWidget("Manual Products"),
+export const personalizedForYouConfig : WidgetConfig = {
+  ...baseWidget("Personalized For You"),
   active: true,
     backend: {
-        widgetName: "Manual Products",
+        widgetName: "Personalized For You",
         widgetDescription: "Displays products selected manually by the user.",
         availableOnpages: [ avaibleIdBasedPageList , []],
         apply_on_pages:[]
@@ -150,11 +150,11 @@ export const manualProductsConfig : WidgetConfig = {
 
 
 
-export const featureCollectionConfig : WidgetConfig = {
-  ...baseWidget("Feature Collection"),
+export const featuredDealsConfig : WidgetConfig = {
+  ...baseWidget("Featured Deals"),
   active: true,
     backend: {
-        widgetName: "Feature Collection",
+        widgetName: "Featured Deals",
         widgetDescription: "Displays products from a featured collection.",
         availableOnpages: [ avaibleAllPageList , []],
         apply_on_pages:[]

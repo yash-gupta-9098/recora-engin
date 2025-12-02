@@ -64,9 +64,11 @@ export default function SinglePage({
   shopify,
   shopDomain,
 }: WidgetSettingProps) {
-  const [openWidget, setOpenWidget] = useState<string | null>(
-    Object.keys(settings)[0],
-  );
+  const [openWidget, setOpenWidget] = useState<string | null>(() => {
+    // Get the first widget key from settings
+    const keys = Object.keys(settings);
+    return keys.length > 0 ? keys[0] : null;
+  });
 
   const [allPagesAddPopover, setAllPagesAddPopover] = useState<Record<string, boolean>>({});
 
@@ -440,6 +442,14 @@ export default function SinglePage({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Open the first widget when settings change (page navigation)
+  useEffect(() => {
+    const keys = Object.keys(settings);
+    if (keys.length > 0) {
+      setOpenWidget(keys[0]);
+    }
+  }, [settings]);
+
   const navigate = useNavigate();
 
   return (
@@ -463,7 +473,7 @@ export default function SinglePage({
             {Object.entries(settings as Record<string, WidgetConfig>).map(
               ([key, widget]) => (
                 <>
-                  <Card key={key}>
+                  <Card key={key} background={openWidget === key ? "bg-fill-info-secondary" : undefined}>
                     <BlockStack gap="400">
                       <InlineStack
                         align="space-between"
@@ -506,7 +516,7 @@ export default function SinglePage({
                                   // Extract shop name from domain (remove .myshopify.com)
                                   const shopName = shopDomain.replace('.myshopify.com', '');
 
-                                  shopify.toast.show('Opening theme editor. Click "Add block" and search for "New Arrivals" under Apps.');
+                                  shopify.toast.show('Opening theme editor. Click "Add block" and search for the widget under Apps.');
 
                                   // Open theme editor with the correct template - no context parameter
                                   // User will click on a section, then "Add block", then find "New Arrivals" under Apps
@@ -542,8 +552,8 @@ export default function SinglePage({
                           <Card >
                             <BlockStack gap="200">
 
-                                {/* Widget Settings - Show only for "Related Products" widget */}
-                                {widget?.backend?.widgetName === "Related Products" && (
+                                {/* Widget Settings - Show only for "Similar Products" widget */}
+                                {widget?.backend?.widgetName === "Similar Products" && (
                                   <>
                                     <BlockStack gap="200" >
                                         <Text as="h3" fontWeight="bold">

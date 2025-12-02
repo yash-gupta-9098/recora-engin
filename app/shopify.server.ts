@@ -7,7 +7,7 @@ import {
 } from "@shopify/shopify-app-remix/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
-import { aiBasedRecommendationsConfig, manualProductsConfig, newArrivalsConfig, recentlyViewedProductsConfig, relatedProductsConfig, topSellingProductsConfig, trendingProductsConfig } from "./constants/defaultValues/defaultWidgetConfig";
+import { aiSmartPicksConfig, personalizedForYouConfig, latestArrivalsConfig, recentlyViewedConfig, similarProductsConfig, bestSellersConfig, trendingNowConfig } from "./constants/defaultValues/defaultWidgetConfig";
 import { defaultGlobalSettings } from "./constants/defaultValues/defaultGlobalSettings";
 import { Prisma } from "@prisma/client";
 
@@ -56,75 +56,75 @@ async function insertDefaultShopData(session: Session) {
       home: {
         pageBlockSettings: { pageActive: true, icon: true },
         widgets: {
-          topSelling: topSellingProductsConfig,
-          trending: trendingProductsConfig,
-          aiBasedRecommendations: aiBasedRecommendationsConfig,
-          newarival: newArrivalsConfig,
-          recentlyViewed: recentlyViewedProductsConfig,
+          bestSellers: bestSellersConfig,
+          trendingNow: trendingNowConfig,
+          aiSmartPicks: aiSmartPicksConfig,
+          latestArrivals: latestArrivalsConfig,
+          recentlyViewed: recentlyViewedConfig,
         }
       },
       product: {
         pageBlockSettings: { pageActive: true, icon: true },
         widgets: {
-          related: relatedProductsConfig,
-          topSelling: topSellingProductsConfig,
-          trending: trendingProductsConfig,
-          manual: manualProductsConfig,
-          aiBasedRecommendations: aiBasedRecommendationsConfig,
-          newarival: newArrivalsConfig,
-          recentlyViewed: recentlyViewedProductsConfig,
+          similarProducts: similarProductsConfig,
+          bestSellers: bestSellersConfig,
+          trendingNow: trendingNowConfig,
+          personalizedForYou: personalizedForYouConfig,
+          aiSmartPicks: aiSmartPicksConfig,
+          latestArrivals: latestArrivalsConfig,
+          recentlyViewed: recentlyViewedConfig,
         }
       },
       collection: {
         pageBlockSettings: { pageActive: true, icon: true },
         widgets: {
-          topSelling: topSellingProductsConfig,
-          trending: trendingProductsConfig,
-          aiBasedRecommendations: aiBasedRecommendationsConfig,
-          newarival: newArrivalsConfig,
-          recentlyViewed: recentlyViewedProductsConfig,
+          bestSellers: bestSellersConfig,
+          trendingNow: trendingNowConfig,
+          aiSmartPicks: aiSmartPicksConfig,
+          latestArrivals: latestArrivalsConfig,
+          recentlyViewed: recentlyViewedConfig,
         }
       },
       cart: {
         pageBlockSettings: { pageActive: true, icon: true },
         widgets: {
-          related: relatedProductsConfig,
-          topSelling: topSellingProductsConfig,
-          trending: trendingProductsConfig,
-          manual: manualProductsConfig,
-          aiBasedRecommendations: aiBasedRecommendationsConfig,
-          newarival: newArrivalsConfig,
-          recentlyViewed: recentlyViewedProductsConfig,
+          similarProducts: similarProductsConfig,
+          bestSellers: bestSellersConfig,
+          trendingNow: trendingNowConfig,
+          personalizedForYou: personalizedForYouConfig,
+          aiSmartPicks: aiSmartPicksConfig,
+          latestArrivals: latestArrivalsConfig,
+          recentlyViewed: recentlyViewedConfig,
         }
       },
       other: {
         pageBlockSettings: { pageActive: true, icon: true },
         widgets: {
-          topSelling: topSellingProductsConfig,
-          trending: trendingProductsConfig,
-          aiBasedRecommendations: aiBasedRecommendationsConfig,
-          newarival: newArrivalsConfig,
-          recentlyViewed: recentlyViewedProductsConfig,
+          bestSellers: bestSellersConfig,
+          trendingNow: trendingNowConfig,
+          aiSmartPicks: aiSmartPicksConfig,
+          latestArrivals: latestArrivalsConfig,
+          recentlyViewed: recentlyViewedConfig,
         }
       },
       search: {
         pageBlockSettings: { pageActive: true, icon: true },
         widgets: {
-          topSelling: topSellingProductsConfig,
-          trending: trendingProductsConfig,
-          aiBasedRecommendations: aiBasedRecommendationsConfig,
-          newarival: newArrivalsConfig,
-          recentlyViewed: recentlyViewedProductsConfig,
+          bestSellers: bestSellersConfig,
+          trendingNow: trendingNowConfig,
+          aiSmartPicks: aiSmartPicksConfig,
+          latestArrivals: latestArrivalsConfig,
+          recentlyViewed: recentlyViewedConfig,
         }
       },
       notFound: {
         pageBlockSettings: { pageActive: true, icon: true },
         widgets: {
-          topSelling: topSellingProductsConfig,
-          trending: trendingProductsConfig,
-          aiBasedRecommendations: aiBasedRecommendationsConfig,
-          newarival: newArrivalsConfig,
-          recentlyViewed: recentlyViewedProductsConfig,
+          bestSellers: bestSellersConfig,
+          trendingNow: trendingNowConfig,
+          aiSmartPicks: aiSmartPicksConfig,
+          latestArrivals: latestArrivalsConfig,
+          recentlyViewed: recentlyViewedConfig,
         }
       },    
       shopActive: true
