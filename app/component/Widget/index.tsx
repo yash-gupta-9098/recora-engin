@@ -32,11 +32,13 @@ import {
 import { useCallback, useState } from "react";
 import {
   ArrowDownIcon,
+  ArrowRightIcon,
   CaretDownIcon,
   ChevronDownIcon,
   ExternalIcon,
   MenuHorizontalIcon,
   OrderIcon,
+  PersonalizedTextIcon,
   PlusIcon,
   SettingsIcon,
 } from "@shopify/polaris-icons";
@@ -64,11 +66,9 @@ export default function SinglePage({
   shopify,
   shopDomain,
 }: WidgetSettingProps) {
-  const [openWidget, setOpenWidget] = useState<string | null>(() => {
-    // Get the first widget key from settings
-    const keys = Object.keys(settings);
-    return keys.length > 0 ? keys[0] : null;
-  });
+  const [openWidget, setOpenWidget] = useState<string | null>(
+    null
+  );
 
   const [allPagesAddPopover, setAllPagesAddPopover] = useState<Record<string, boolean>>({});
 
@@ -442,10 +442,10 @@ export default function SinglePage({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Open the first widget when settings change (page navigation)
+  // Open the first widget on initial load
   useEffect(() => {
     const keys = Object.keys(settings);
-    if (keys.length > 0) {
+    if (keys.length > 0 && !openWidget) {
       setOpenWidget(keys[0]);
     }
   }, [settings]);
@@ -495,7 +495,7 @@ export default function SinglePage({
                               ariaExpanded={openWidget === key}
                               ariaControls={`collapsible-${key}`}
                             >
-                              Customize
+                              Configure
                             </Button>
                             <Button
                               onClick={() => {
@@ -849,8 +849,10 @@ export default function SinglePage({
                                         (prev: boolean) => !prev,
                                       );
                                     }}
+                                    variant="primary"
+                                    icon={PersonalizedTextIcon}
                                   >
-                                    Customize Settings
+                                    Customize Design
                                   </Button>
                                 </InlineStack>
                               </BlockStack>
@@ -888,6 +890,7 @@ export default function SinglePage({
 
           {!isMobile && showSlidekick && openWidget && (
             <WidgetSettings
+              key={openWidget}
               setShowSlidekick={setShowSlidekick}
               widgetName={settings[openWidget]?.backend?.widgetName || "Widget"}
               widgetsSettings={settings[openWidget]?.widgetsSettings}
