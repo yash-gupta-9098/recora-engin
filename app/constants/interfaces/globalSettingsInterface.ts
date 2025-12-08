@@ -3,13 +3,13 @@
 export interface FontSetting {
   fontSize: number;
   color: string;
-  textAlign: string;
+  textAlign: "left" | "center" | "right";
   customClass: string;
 }
 
 export interface ViewSetting {
   screenSize: string;
-  viewType: string;
+  viewType: "grid" | "slider";
   rangeProValue: number;
 }
 
@@ -64,24 +64,25 @@ export interface ProductImage {
   onHover: boolean;
   showVariantImage: boolean;
   cropImage: boolean;
-  cropType: string;
+  cropType: "top" | "center" | "bottom";
   padding: number;
   customClass: string;
 }
 
 export interface ProductCard {
-  cardStyle: string;
+  cardStyle: "standard" | "card";
   reviewType: string;
   wishlist: string;
   colorScheme: string;
   showVendor: boolean;
-  textAlignType: string;
+  textAlignType: "left" | "center" | "right";
   customClass: string;
 }
 
 export interface ColorScheme {
   [key: string]: {
     text: string;
+    border: string;
     text_Secondary: string;
     background: string;
     card_border: string;

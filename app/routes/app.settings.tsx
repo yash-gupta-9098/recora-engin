@@ -93,7 +93,7 @@ interface ProductImageSettings {
   onHover: boolean;
   showVariantImage: boolean;
   cropImage: boolean;
-  cropType: string;
+  cropType: "top" | "center" | "bottom";
   padding: number;
 }
 
@@ -103,7 +103,7 @@ interface ProductCardSettings {
   wishlist: string;
   colorScheme: string;
   showVendor: boolean;
-  textAlignType: string;
+  textAlignType: "left" | "center" | "right";
 }
 
 interface SettingsPayload {
@@ -243,10 +243,7 @@ const saveBarTimerRef = useRef<number | null>(null);
 
 
 
-  useEffect(() => {
-    shopify.loading(true);
-    shopify.loading(false);
-  }, [])
+ 
 
   const handleSave = () => {
     document.querySelector("form")?.requestSubmit();
@@ -301,14 +298,14 @@ useEffect(() => {
       if (a !== b) {
         // settings changed -> show SaveBar
         try {
-          shopify.saveBar.show?.('global-settings');
+          // shopify.saveBar.show?.('global-settings');
         } catch (err) {
           console.warn("SaveBar show error", err);
         }
       } else {
         // settings same as initial -> hide SaveBar
         try {
-          shopify.saveBar.hide?.('global-settings');
+          // shopify.saveBar.hide?.('global-settings');
         } catch (err) {
           console.warn("SaveBar hide error", err);
         }
@@ -321,7 +318,7 @@ useEffect(() => {
         window.clearTimeout(saveBarTimerRef.current);
       }
     };
-  }, [globalSettings, shopify]);
+  }, [globalSettings]);
 
 
 
@@ -376,12 +373,12 @@ useEffect(() => {
           fullWidth={true}
           title="Settings"
         >
-          <SaveBar
+           {/* <SaveBar
             id="global-settings"
           >
             <button variant="primary" onClick={handleSave}></button>
             <button onClick={handleDiscard}></button>
-          </SaveBar>
+          </SaveBar>   */}
           <Layout sectioned={false}>
             <Layout.Section>
               <Card background="bg-surface" padding="0" roundedAbove="sm">

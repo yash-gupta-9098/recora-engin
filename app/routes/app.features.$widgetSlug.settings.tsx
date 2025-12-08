@@ -459,14 +459,12 @@ export default function WidgetSettingsPage() {
                       <div style={{ display: selected === 0 ? "block" : "none" }}>
                         <TabsProductCard
                           settingfromDb={mergedSettings as any}
-                          dispatch={widgetDispatch}
                           developerMode={developerMode}
                         />
                       </div>
                       <div style={{ display: selected === 1 ? "block" : "none" }}>
                         <TabsLayout
                           settingfromDb={mergedSettings as any}
-                          dispatch={widgetDispatch}
                           developerMode={developerMode}
                         />
                       </div>

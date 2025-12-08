@@ -97,6 +97,7 @@ export const defaultGlobalSettings: GlobalSettingsState = {
   customCSS: "",
   colorScheme: {
     "Scheme 1": {
+      border: "#e1e1e1ff",
       text: "#333333ff",
       text_Secondary: "#666666ff",
       background: "#ffffffff",
@@ -113,6 +114,7 @@ export const defaultGlobalSettings: GlobalSettingsState = {
       icon_hover_background: "#e1e1e1ff",
     },
     "Scheme 2": {
+      border: "#444444ff",
       text: "#ffffffff",
       text_Secondary: "#ccccccff",
       background: "#2c2c2cff",

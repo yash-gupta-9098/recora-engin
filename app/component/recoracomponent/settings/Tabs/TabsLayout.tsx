@@ -69,12 +69,10 @@ interface SettingFromDb {
 interface Props {
   developerMode: boolean;
   settingfromDb: SettingFromDb;
-  dispatch: React.Dispatch<any>; // Replace 'any' with the correct type for Action if known
 }
 
 export default function TabsLayout({
   settingfromDb,
-  dispatch,
   developerMode,
 }: Props) {
   // Redux hooks

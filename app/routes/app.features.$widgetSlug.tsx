@@ -276,10 +276,10 @@ export default function Widgets() {
         shopify={shopify}
         shopDomain={shopDomain}
       >
-        <SaveBar id="single-page-settings">
+        {/* <SaveBar id="single-page-settings">
           <button variant="primary" onClick={handleSave}></button>
           <button onClick={handleDiscard}></button>
-        </SaveBar>
+        </SaveBar> */}
       </SinglePage>
     </>
   );

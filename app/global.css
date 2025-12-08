@@ -3,3 +3,14 @@
     box-shadow:0.0625rem 0rem 0rem 0rem rgba(0,0,0,.13) inset,-0.0625rem 0rem 0rem 0rem rgba(0,0,0,.13) inset,0rem -0.0625rem 0rem 0rem rgba(0,0,0,.17) inset,0rem 0.0625rem 0rem 0rem hsla(0,0%,80%,.5) inset;
     background:#fff;
 }
+
+
+.StepIcon-bg-circle {
+    opacity: 0;
+}
+
+
+.setp-icon-svg:hover .StepIcon-bg-circle {
+    opacity: 1;
+    transition: all 0.5s ease;
+}

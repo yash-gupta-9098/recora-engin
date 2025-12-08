@@ -27,7 +27,7 @@ interface ProductImageSettings {
     onHover: boolean;
     showVariantImage: boolean;
     cropImage: boolean;
-    cropType: 'top' | 'center' | 'bottom';
+    cropType: "top" | "center" | "bottom";
     padding: number;
     customClass: string;
 }
@@ -56,7 +56,7 @@ interface ProductPriceSettings {
         showVariantPrice: boolean,
         color: string
     };
-    singlePriceColor: string;
+    // singlePriceColor: string;
     showZeroToFree: boolean;
     customClass: string;
 }
@@ -75,7 +75,7 @@ interface ProductCardSettings {
 
 
 interface SettingsFromDb {
-    colorScheme: { [key: string]: { background: string; text: string, border: string, text_Secondary: string } };
+    colorScheme: { [key: string]: { background: string; text: string, text_Secondary: string } };
     productTitle: ProductTitleSettings;
     productImage: ProductImageSettings;
     productPrice: ProductPriceSettings;
@@ -84,7 +84,6 @@ interface SettingsFromDb {
 
 interface Props {
     settingfromDb: SettingsFromDb;
-    dispatch: React.Dispatch<any>;
     developerMode: boolean;
 }
 
@@ -116,7 +115,7 @@ const reviewItems = [
 
 
 
-export default function TabsProductCard({ settingfromDb, dispatch, developerMode }: Props) {
+export default function TabsProductCard({ settingfromDb, developerMode }: Props) {
     // Redux hooks
     const ReduxDispatch = useDispatch();
     const ReduxColorScheme = useSelector((state: RootState) => state.globalSettings.colorScheme);
@@ -952,7 +951,7 @@ export default function TabsProductCard({ settingfromDb, dispatch, developerMode
                                         <Button
                                             key={pos}
                                             size="slim"
-                                            pressed={ReduxProductImage.cropType === pos}
+                                            pressed={ReduxProductImage.cropType == pos}
                                             onClick={() =>
                                                 ReduxDispatch(updateSection({ section: 'productImage', payload: { cropType: pos } }))}
                                         >

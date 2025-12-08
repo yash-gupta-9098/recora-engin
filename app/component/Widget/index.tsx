@@ -521,7 +521,8 @@ export default function SinglePage({
                                   // Open theme editor with the correct template - no context parameter
                                   // User will click on a section, then "Add block", then find "New Arrivals" under Apps
                                   window.open(
-                                    `https://admin.shopify.com/store/${shopName}/themes/current/editor?template=${template}`,
+                                    `https://${shopDomain}/admin/themes/current/editor?template=${template}&addAppBlockId={api_key}/customer_review&target=newAppsSection`,
+                                    // `https://admin.shopify.com/store/${shopName}/themes/current/editor?template=${template}`,
                                     '_top'
                                   );
                                 }
@@ -930,6 +931,10 @@ export default function SinglePage({
           </Text>
         </Modal.Section>
       </Modal>
+
+
+
+      {/*  */}
     </>
   );
 }
